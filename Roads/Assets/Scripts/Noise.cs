@@ -4,9 +4,9 @@ using UnityEngine;
 
 public static class Noise {
 
-    public static float[,] GenerateNoiseMap(int mapWidth, int mapHeight, float scale)
+    public static List<Vector3> GenerateNoiseMap(int mapWidth, int mapHeight, float scale)
     {
-        float[,] noiseMap = new float[mapWidth, mapHeight];
+        List<Vector3> noiseMap = new List<Vector3>();
 
         if (scale <= 0)
         {
@@ -21,7 +21,7 @@ public static class Noise {
                 float sampleY = y / scale;
 
                 float perlinValue = Mathf.PerlinNoise(sampleX, sampleY);
-                noiseMap[x, y] = perlinValue;
+                noiseMap.Add(new Vector3(x, y, perlinValue));
             }
         }
 

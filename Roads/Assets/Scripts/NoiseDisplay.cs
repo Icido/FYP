@@ -4,22 +4,20 @@ using UnityEngine;
 
 public class NoiseDisplay : MonoBehaviour {
 
-    public Renderer textureRender;
     public int mapWidth;
     public int mapHeight;
 
     [Range(1f, 50f)]
     public float noiseScale;
 
-    private float[,] noiseMap;
+    private List<Vector3> noiseMap;
 
-    public List<Vector2> PopDensityLocations = new List<Vector2>();
-
-    private Color popLowerBound = new Color(0.95f, 0.95f, 0.95f);
+    public List<Vector2> HighPopDensityLocations = new List<Vector2>();
+    public List<Vector2> MediumPopDensityLocations = new List<Vector2>();
 
     public void Update()
     {
-        float[,] tempNoiseMap = Noise.GenerateNoiseMap(mapWidth, mapHeight, noiseScale);
+        List<Vector3> tempNoiseMap = Noise.GenerateNoiseMap(mapWidth, mapHeight, noiseScale);
 
         if (tempNoiseMap != noiseMap)
         {
@@ -29,39 +27,25 @@ public class NoiseDisplay : MonoBehaviour {
         }
     }
 
-    public void DrawNoiseMap(float[,] noiseMap)
+    public void DrawNoiseMap(List<Vector3> noiseMap)
     {
-        PopDensityLocations.Clear();
+        HighPopDensityLocations.Clear();
 
-        int width = noiseMap.GetLength(0);
-        int height = noiseMap.GetLength(1);
-
-        Texture2D texture = new Texture2D(width, height);
-
-        Color[] colourMap = new Color[width * height];
-        for(int y = 0; y < height; y++)
+        int size = noiseMap.Count;
+        
+        for(int i = 0; i < size; i++)
         {
-            for(int x = 0; x < width; x++)
+            if(noiseMap[i].z > 0.095f)
             {
-                colourMap[y * width + x] = Color.Lerp(Color.black, Color.white, noiseMap[x, y]);
-
-                if(colourMap[y * width + x].r >= popLowerBound.r)
-                {
-                    PopDensityLocations.Add(new Vector2(x,y));
-                }
+                HighPopDensityLocations.Add(new Vector2(noiseMap[i].x, noiseMap[i].y));
             }
         }
-        texture.SetPixels(colourMap);
-        texture.Apply();
-
-        textureRender.sharedMaterial.mainTexture = texture;
-        textureRender.transform.localScale = new Vector3(width, 1, height);
 
     }
 
-    public List<Vector2> getPopLocations()
+    public List<Vector2> getHighPopLocations()
     {
-        return PopDensityLocations;
+        return HighPopDensityLocations;
     }
 
 
