@@ -172,8 +172,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mapWidth: 100
   mapHeight: 100
-  noiseScale: 5
-  HighPopDensityLocations: []
+  noiseScale: 4
   HighPopDensityAreas: []
   MediumPopDensityLocations: []
 --- !u!1 &832425572

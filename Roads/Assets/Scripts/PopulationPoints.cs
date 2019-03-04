@@ -15,28 +15,27 @@ public class PopulationPoints : MonoBehaviour {
 
     // Update is called once per frame
     void Update () {
+        var temp = popList;
         if (Input.GetKeyUp(KeyCode.Space))
         {
             updateLocations();
+
             Debug.Log("Updated");
         }
-	}
+    }
 
     void updateLocations()
     {
-        var tempList = noiseGeneration.getHighPopLocations();
+        var tempList = noiseGeneration.getHighPopAreas();
 
-        /*
         if (checkLists(popList, tempList) == false)
         {
             popList = tempList;
             hotspotGeneration(popList);
         }
-        */
 
         return;
     }
-
 
     bool checkLists(List<Vector2> list1, List<Vector2> list2)
     {
@@ -59,7 +58,6 @@ public class PopulationPoints : MonoBehaviour {
 
     void hotspotGeneration(List<Vector2> hotspots)
     {
-
         if (populationHotSpots.Count > 0)
         {
             foreach (GameObject hotSpot in populationHotSpots)

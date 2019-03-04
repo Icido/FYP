@@ -14,7 +14,7 @@ public class NoiseDisplay : MonoBehaviour {
 
     private List<Vector2> tempLocVec = new List<Vector2>();
 
-    public List<Vector2> HighPopDensityLocations = new List<Vector2>();
+    private List<Vector2> HighPopDensityLocations = new List<Vector2>();
     public List<Vector2> HighPopDensityAreas = new List<Vector2>();
     public List<Vector2> MediumPopDensityLocations = new List<Vector2>();
 
@@ -33,6 +33,7 @@ public class NoiseDisplay : MonoBehaviour {
     public void DrawNoiseMap(List<Vector3> noiseMap)
     {
         HighPopDensityLocations.Clear();
+        HighPopDensityAreas.Clear();
 
         for(int i = 0; i < noiseMap.Count; i++)
         {
@@ -49,17 +50,15 @@ public class NoiseDisplay : MonoBehaviour {
 
             for (int j = 0; j < HighPopDensityLocations.Count; j++)
             {
-                if(i != j)
+                if (i == j)
                 {
-                    if(HighPopDensityLocations[i].x + 6 > HighPopDensityLocations[j].x &&
-                       HighPopDensityLocations[i].x - 6 < HighPopDensityLocations[j].x)
-                    {
-                        if (HighPopDensityLocations[i].y + 6 > HighPopDensityLocations[j].y &&
-                            HighPopDensityLocations[i].y - 6 < HighPopDensityLocations[j].y)
-                        {
-                            tempLocVec.Add(HighPopDensityLocations[i]);
-                        }
-                    }
+                    continue;
+                }
+
+                if((HighPopDensityLocations[i].x + 6 > HighPopDensityLocations[j].x) && (HighPopDensityLocations[i].x - 6 < HighPopDensityLocations[j].x) &&
+                    (HighPopDensityLocations[i].y + 6 > HighPopDensityLocations[j].y) && (HighPopDensityLocations[i].y - 6 < HighPopDensityLocations[j].y))
+                {
+                    tempLocVec.Add(HighPopDensityLocations[j]);
                 }
             }
 
@@ -79,15 +78,10 @@ public class NoiseDisplay : MonoBehaviour {
             {
                 HighPopDensityAreas.Add(tempVec2);
             }
-
-
-
         }
-
-
     }
 
-    public List<Vector2> getHighPopLocations()
+    public List<Vector2> getHighPopAreas()
     {
         return HighPopDensityAreas;
     }
