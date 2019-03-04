@@ -26,11 +26,13 @@ public class PopulationPoints : MonoBehaviour {
     {
         var tempList = noiseGeneration.getHighPopLocations();
 
+        /*
         if (checkLists(popList, tempList) == false)
         {
             popList = tempList;
             hotspotGeneration(popList);
         }
+        */
 
         return;
     }
