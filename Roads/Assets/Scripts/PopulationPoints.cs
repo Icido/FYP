@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class PopulationPoints : MonoBehaviour {
 
-    public NoiseDisplay noiseGeneration;
+    public PopulationCalculator noiseGeneration;
 
     public GameObject populationHubObject;
 
@@ -13,27 +13,22 @@ public class PopulationPoints : MonoBehaviour {
     public List<Vector2> popList = new List<Vector2>();
 
 
-    // Update is called once per frame
-    void Update () {
-        if (Input.GetKeyUp(KeyCode.Space))
-        {
-            updateLocations();
-
-            Debug.Log("Updated");
-        }
-    }
-
-    void updateLocations()
+    public void updateLocations()
     {
+     
+        noiseGeneration.UpdateNoiseMap();
+        
         //var tempList = noiseGeneration.getHighPopAreas();
 
         //if (checkLists(popList, tempList) == false)
         //{
-        //popList = tempList;
-        popList = noiseGeneration.getHighPopAreas();
-        hotspotGeneration(noiseGeneration.getHighPopAreas());
-        //}
+        //    popList = tempList;
 
+            popList = noiseGeneration.getHighPopAreas();
+            hotspotGeneration(noiseGeneration.getHighPopAreas());
+
+        //}
+        
         return;
     }
 
@@ -71,7 +66,7 @@ public class PopulationPoints : MonoBehaviour {
         foreach (Vector2 location in popList)
         {
             Vector3 pos = new Vector3(location.x, 1, location.y);
-            GameObject popHub = GameObject.Instantiate(populationHubObject, pos, this.transform.rotation, this.transform);
+            GameObject popHub = Instantiate(populationHubObject, pos, Quaternion.identity, transform);
             populationHotSpots.Add(popHub);
         }
 

@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657844, g: 0.49641222, b: 0.57481694, a: 1}
 --- !u!157 &3
 LightmapSettings:
   m_ObjectHideFlags: 0
@@ -121,6 +121,7 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 380316150}
+  - component: {fileID: 380316152}
   - component: {fileID: 380316149}
   - component: {fileID: 380316151}
   m_Layer: 0
@@ -173,8 +174,20 @@ MonoBehaviour:
   mapWidth: 100
   mapHeight: 100
   noiseScale: 4
+  areaSize: 6
   HighPopDensityAreas: []
-  MediumPopDensityLocations: []
+--- !u!114 &380316152
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 380316148}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 11616950ea7c6e841873e72f9daa5469, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  popPoints: {fileID: 380316149}
 --- !u!1 &832425572
 GameObject:
   m_ObjectHideFlags: 0

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class NoiseDisplay : MonoBehaviour {
+public class PopulationCalculator : MonoBehaviour {
 
     public int mapWidth;
     public int mapHeight;
@@ -10,15 +10,20 @@ public class NoiseDisplay : MonoBehaviour {
     [Range(1f, 50f)]
     public float noiseScale;
 
+    public int areaSize;
+
     private List<Vector3> noiseMap;
 
     private List<Vector2> tempLocVec = new List<Vector2>();
 
     private List<Vector2> HighPopDensityLocations = new List<Vector2>();
-    public List<Vector2> HighPopDensityAreas = new List<Vector2>();
-    public List<Vector2> MediumPopDensityLocations = new List<Vector2>();
 
-    public void Update()
+    [SerializeField]
+    private List<Vector2> HighPopDensityAreas = new List<Vector2>();
+
+    //private List<Vector2> MediumPopDensityLocations = new List<Vector2>();
+
+    public void UpdateNoiseMap()
     {
         List<Vector3> tempNoiseMap = Noise.GenerateNoiseMap(mapWidth, mapHeight, noiseScale);
 
@@ -55,8 +60,8 @@ public class NoiseDisplay : MonoBehaviour {
                     continue;
                 }
 
-                if((HighPopDensityLocations[i].x + 6 > HighPopDensityLocations[j].x) && (HighPopDensityLocations[i].x - 6 < HighPopDensityLocations[j].x) &&
-                    (HighPopDensityLocations[i].y + 6 > HighPopDensityLocations[j].y) && (HighPopDensityLocations[i].y - 6 < HighPopDensityLocations[j].y))
+                if((HighPopDensityLocations[i].x + areaSize > HighPopDensityLocations[j].x) && (HighPopDensityLocations[i].x - areaSize < HighPopDensityLocations[j].x) &&
+                    (HighPopDensityLocations[i].y + areaSize > HighPopDensityLocations[j].y) && (HighPopDensityLocations[i].y - areaSize < HighPopDensityLocations[j].y))
                 {
                     tempLocVec.Add(HighPopDensityLocations[j]);
                 }
@@ -85,6 +90,4 @@ public class NoiseDisplay : MonoBehaviour {
     {
         return HighPopDensityAreas;
     }
-
-
 }
