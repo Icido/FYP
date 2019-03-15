@@ -12,7 +12,6 @@ public class GenerationController : MonoBehaviour {
         {
             Debug.Log("Updating...");
             popPoints.updateLocations();
-            Debug.Log("Number of nodes spawned: " + transform.childCount);
         }
 	}
 }

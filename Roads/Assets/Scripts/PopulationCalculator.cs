@@ -7,6 +7,9 @@ public class PopulationCalculator : MonoBehaviour {
     public int mapWidth;
     public int mapHeight;
 
+    [Range(0f, 1f)]
+    public float highDensityLimit = 0.95f;
+
     [Range(1f, 50f)]
     public float noiseScale;
 
@@ -42,7 +45,7 @@ public class PopulationCalculator : MonoBehaviour {
 
         for(int i = 0; i < noiseMap.Count; i++)
         {
-            if(noiseMap[i].z > 0.95f)
+            if(noiseMap[i].z > highDensityLimit)
             {
                 HighPopDensityLocations.Add(new Vector2(noiseMap[i].x, noiseMap[i].y));
             }

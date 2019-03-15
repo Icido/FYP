@@ -24,8 +24,11 @@ public class PopulationPoints : MonoBehaviour {
         //{
         //    popList = tempList;
 
-            popList = noiseGeneration.getHighPopAreas();
-            hotspotGeneration(noiseGeneration.getHighPopAreas());
+        popList = noiseGeneration.getHighPopAreas();
+        hotspotGeneration(noiseGeneration.getHighPopAreas());
+
+        NearestNeighbourFinder.roadConnections(populationHotSpots);
+        
 
         //}
         
