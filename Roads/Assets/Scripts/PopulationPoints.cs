@@ -70,6 +70,7 @@ public class PopulationPoints : MonoBehaviour {
         {
             Vector3 pos = new Vector3(location.x, 1, location.y);
             GameObject popHub = Instantiate(populationHubObject, pos, Quaternion.identity, transform);
+            popHub.name = "Hotspot location " + popList.IndexOf(location);
             populationHotSpots.Add(popHub);
         }
 

@@ -32,20 +32,23 @@ public static class NearestNeighbourFinder {
 
                 foreach (GameObject storedLocation in connectedSpots)
                 {
-                    //If one object has been flagged to be farther away than new point, all other points will be checked if they are farther than the first checked point
-                    if(checkAgainstOthers)
+                    ////If one object has been flagged to be farther away than new point, all other points will be checked if they are farther than the first checked point
+                    if (checkAgainstOthers)
                     {
-                        if((location.transform.position - storedLocation.transform.position).sqrMagnitude > (location.transform.position - locationToBeRemoved.transform.position).sqrMagnitude)
+                        if ((location.transform.position - storedLocation.transform.position).sqrMagnitude > (location.transform.position - locationToBeRemoved.transform.position).sqrMagnitude)
                         {
                             locationToBeRemoved = storedLocation;
                         }
-                        
+
                         continue;
                     }
 
                     //Checking if new location is smaller than any of the stored locations
-                    if((location.transform.position - storedLocation.transform.position).sqrMagnitude > distBetween)
+                    if ((location.transform.position - storedLocation.transform.position).sqrMagnitude > distBetween)
                     {
+                        //connectedSpots.Remove(storedLocation);
+                        //connectedSpots.Add(location);
+
                         locationToBeRemoved = storedLocation;
                         checkAgainstOthers = true;
                     }
@@ -54,12 +57,15 @@ public static class NearestNeighbourFinder {
                 connectedSpots.Remove(locationToBeRemoved);
                 connectedSpots.Add(location);
 
+                Object.Destroy(locationToBeRemoved);
+
             }
 
+            location.GetComponent<StoredNearestNeighbours>().ConnectedLocations.Clear();
             location.GetComponent<StoredNearestNeighbours>().ConnectedLocations.AddRange(connectedSpots);
             location.GetComponent<StoredNearestNeighbours>().numberOfConnections = numConnections;
-            location.GetComponent<StoredNearestNeighbours>().numberOfActualConnectedLocations = connectedSpots.Count;
 
+            connectedSpots.Clear();
             //Instanciate roads along connections
 
 

@@ -12,6 +12,7 @@ public class GenerationController : MonoBehaviour {
         {
             Debug.Log("Updating...");
             popPoints.updateLocations();
+            Debug.Log("Finished updating!");
         }
 	}
 }

@@ -7,8 +7,6 @@ public class StoredNearestNeighbours : MonoBehaviour {
 
     public int numberOfConnections;
 
-    public int numberOfActualConnectedLocations;
-
 
     public List<GameObject> ConnectedLocations = new List<GameObject>();
 
