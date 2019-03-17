@@ -8,6 +8,8 @@ public class PopulationPoints : MonoBehaviour {
 
     public GameObject populationHubObject;
 
+    public GameObject road;
+
     public List<GameObject> populationHotSpots = new List<GameObject>();
 
     public List<Vector2> popList = new List<Vector2>();
@@ -27,11 +29,12 @@ public class PopulationPoints : MonoBehaviour {
         popList = noiseGeneration.getHighPopAreas();
         hotspotGeneration(noiseGeneration.getHighPopAreas());
 
-        NearestNeighbourFinder.roadConnections(populationHotSpots);
-        
+        NearestNeighbourFinder.roadConnections(populationHotSpots, noiseGeneration.mapSize);
+
+        roadGeneration(populationHotSpots);
 
         //}
-        
+
         return;
     }
 
@@ -60,7 +63,7 @@ public class PopulationPoints : MonoBehaviour {
         {
             foreach (GameObject hotSpot in populationHotSpots)
             {
-                Object.Destroy(hotSpot);
+                Destroy(hotSpot);
             }
 
             populationHotSpots.Clear();
@@ -73,6 +76,48 @@ public class PopulationPoints : MonoBehaviour {
             popHub.name = "Hotspot location " + popList.IndexOf(location);
             populationHotSpots.Add(popHub);
         }
+
+        return;
+    }
+
+    void roadGeneration(List<GameObject> locations)
+    {
+        foreach (GameObject loc in locations)
+        {
+            int numChildren = loc.transform.childCount;
+
+            if (numChildren > 0)
+            {
+                for (int i = 0; i < numChildren; i++)
+                {
+                    Destroy(loc.transform.GetChild(i).gameObject);
+                }
+            }
+        }
+
+
+
+        foreach (GameObject location in locations)
+        {
+            foreach (GameObject point in location.GetComponent<StoredNearestNeighbours>().ConnectedLocations)
+            {
+                Vector3 midPoint = new Vector3((point.transform.position.x + location.transform.position.x) / 2,
+                                               (point.transform.position.y + location.transform.position.y) / 2,
+                                               (point.transform.position.z + location.transform.position.z) / 2);
+
+                float distanceBetween = Vector3.Distance(location.transform.position, point.transform.position);
+                GameObject newRoad = Instantiate(road, midPoint, Quaternion.identity, location.transform);
+                newRoad.transform.LookAt(point.transform);
+                newRoad.transform.Rotate(new Vector3(0, 90, 0));
+                newRoad.name = "Road " + location.GetComponent<StoredNearestNeighbours>().ConnectedLocations.IndexOf(point);
+                newRoad.transform.localScale = new Vector3(distanceBetween, newRoad.transform.localScale.y, newRoad.transform.localScale.z);
+                //Add to storage in StoredNearestNeighbours?
+
+
+            }
+        }
+
+
 
         return;
     }

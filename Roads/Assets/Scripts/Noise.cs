@@ -4,7 +4,7 @@ using UnityEngine;
 
 public static class Noise {
 
-    public static List<Vector3> GenerateNoiseMap(int mapWidth, int mapHeight, float scale)
+    public static List<Vector3> GenerateNoiseMap(int mapSize, float scale)
     {
         List<Vector3> noiseMap = new List<Vector3>();
 
@@ -13,9 +13,9 @@ public static class Noise {
             scale = 0.0001f;
         }
 
-        for (int y = 0; y < mapHeight; y++)
+        for (int y = 0; y < mapSize; y++)
         {
-            for (int x = 0; x < mapWidth; x++)
+            for (int x = 0; x < mapSize; x++)
             {
                 float sampleX = x / scale;
                 float sampleY = y / scale;

@@ -4,8 +4,7 @@ using UnityEngine;
 
 public class PopulationCalculator : MonoBehaviour {
 
-    public int mapWidth;
-    public int mapHeight;
+    public int mapSize;
 
     [Range(0f, 1f)]
     public float highDensityLimit = 0.95f;
@@ -28,7 +27,7 @@ public class PopulationCalculator : MonoBehaviour {
 
     public void UpdateNoiseMap()
     {
-        List<Vector3> tempNoiseMap = Noise.GenerateNoiseMap(mapWidth, mapHeight, noiseScale);
+        List<Vector3> tempNoiseMap = Noise.GenerateNoiseMap(mapSize, noiseScale);
 
         if (tempNoiseMap != noiseMap)
         {

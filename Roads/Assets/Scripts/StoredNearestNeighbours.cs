@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class StoredNearestNeighbours : MonoBehaviour {
 
-
-    public int numberOfConnections;
+    public int currentNumberOfConnections;
+    public int maxNumberOfConnections;
 
 
     public List<GameObject> ConnectedLocations = new List<GameObject>();

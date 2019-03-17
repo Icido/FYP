@@ -145,6 +145,7 @@ MonoBehaviour:
   noiseGeneration: {fileID: 380316151}
   populationHubObject: {fileID: 1952119202769536, guid: eae4a354377a3ec48a21e8d63195f451,
     type: 2}
+  road: {fileID: 1054941729665846, guid: 414bc206fa8c3d84882a7f712b449299, type: 2}
   populationHotSpots: []
   popList: []
 --- !u!4 &380316150
@@ -171,8 +172,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d2a722f612b7cea459a0de42e385d127, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mapWidth: 100
-  mapHeight: 100
+  mapSize: 100
   highDensityLimit: 0.95
   noiseScale: 4
   areaSize: 3
