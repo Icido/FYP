@@ -4,7 +4,9 @@ using UnityEngine;
 
 public class PopulationPoints : MonoBehaviour {
 
-    public PopulationCalculator noiseGeneration;
+    public PopulationCalculator populationGeneration;
+
+    public TerrainCalculator terrainGeneration;
 
     public GameObject populationHubObject;
 
@@ -17,8 +19,11 @@ public class PopulationPoints : MonoBehaviour {
 
     public void updateLocations()
     {
-     
-        noiseGeneration.UpdateNoiseMap();
+
+        terrainGeneration.UpdateTerrainMap();
+
+
+        populationGeneration.UpdatePopulationMap();
         
         //var tempList = noiseGeneration.getHighPopAreas();
 
@@ -26,10 +31,10 @@ public class PopulationPoints : MonoBehaviour {
         //{
         //    popList = tempList;
 
-        popList = noiseGeneration.getHighPopAreas();
-        hotspotGeneration(noiseGeneration.getHighPopAreas());
-
-        NearestNeighbourFinder.roadConnections(populationHotSpots, noiseGeneration.mapSize, noiseGeneration.seed);
+        popList = populationGeneration.getHighPopAreas();
+        hotspotGeneration(populationGeneration.getHighPopAreas());
+        
+        NearestNeighbourFinder.roadConnections(populationHotSpots, populationGeneration.mapSize, populationGeneration.seed);
 
         roadGeneration(populationHotSpots);
 

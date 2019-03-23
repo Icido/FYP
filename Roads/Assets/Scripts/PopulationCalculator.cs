@@ -26,19 +26,19 @@ public class PopulationCalculator : MonoBehaviour {
 
     //private List<Vector2> MediumPopDensityLocations = new List<Vector2>();
 
-    public void UpdateNoiseMap()
+    public void UpdatePopulationMap()
     {
-        List<Vector3> tempNoiseMap = Noise.GenerateNoiseMap(mapSize, noiseScale);
+        List<Vector3> tempPopMap = Noise.GenerateNoiseMap(mapSize, noiseScale);
 
-        if (tempNoiseMap != noiseMap)
+        if (tempPopMap != noiseMap)
         {
-            noiseMap = tempNoiseMap;
+            noiseMap = tempPopMap;
             
-            DrawNoiseMap(noiseMap);
+            DrawPopulationMap(noiseMap);
         }
     }
 
-    public void DrawNoiseMap(List<Vector3> noiseMap)
+    public void DrawPopulationMap(List<Vector3> noiseMap)
     {
         HighPopDensityLocations.Clear();
         HighPopDensityAreas.Clear();

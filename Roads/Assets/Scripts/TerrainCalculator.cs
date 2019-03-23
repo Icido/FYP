@@ -2,15 +2,25 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TerrainCalculator {
+public class TerrainCalculator : MonoBehaviour {
 
-    private int mapWidth;
-    private int mapHeight;
+    public int mapSize;
 
-    private float noiseScale;
+    [Range(1f, 50f)]
+    public float noiseScale;
 
     private List<Vector3> noiseMap;
 
-    
+    public void UpdateTerrainMap()
+    {
+        List<Vector3> tempPopMap = Noise.GenerateNoiseMap(mapSize, noiseScale);
+
+        if (tempPopMap != noiseMap)
+        {
+            noiseMap = tempPopMap;
+
+            //DrawNoiseMap(noiseMap);
+        }
+    }
 
 }
