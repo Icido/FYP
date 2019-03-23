@@ -4,8 +4,13 @@ using UnityEngine;
 
 public static class NearestNeighbourFinder {
 
-    public static void roadConnections(List<GameObject> locations, float mapSize)
+    public static void roadConnections(List<GameObject> locations, float mapSize, int seed)
     {
+
+        Random.InitState(seed);
+
+        //TODO: Make seed a variable that can be changed and repeated to repeat roads as they were
+
         foreach(GameObject location in locations)
         {
             location.GetComponent<StoredNearestNeighbours>().currentNumberOfConnections = 0;

@@ -14,13 +14,14 @@ public class PopulationCalculator : MonoBehaviour {
 
     public int areaSize;
 
+    public int seed;
+
     private List<Vector3> noiseMap;
 
     private List<Vector2> tempLocVec = new List<Vector2>();
 
     private List<Vector2> HighPopDensityLocations = new List<Vector2>();
 
-    [SerializeField]
     private List<Vector2> HighPopDensityAreas = new List<Vector2>();
 
     //private List<Vector2> MediumPopDensityLocations = new List<Vector2>();

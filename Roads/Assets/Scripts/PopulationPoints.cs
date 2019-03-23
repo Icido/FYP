@@ -29,7 +29,7 @@ public class PopulationPoints : MonoBehaviour {
         popList = noiseGeneration.getHighPopAreas();
         hotspotGeneration(noiseGeneration.getHighPopAreas());
 
-        NearestNeighbourFinder.roadConnections(populationHotSpots, noiseGeneration.mapSize);
+        NearestNeighbourFinder.roadConnections(populationHotSpots, noiseGeneration.mapSize, noiseGeneration.seed);
 
         roadGeneration(populationHotSpots);
 
