@@ -14,16 +14,21 @@ public class PopulationPoints : MonoBehaviour {
 
     public List<GameObject> populationHotSpots = new List<GameObject>();
 
-    public List<Vector2> popList = new List<Vector2>();
+    public List<GameObject> terrainSpots = new List<GameObject>();
+
+    public List<Vector3> popList = new List<Vector3>();
+
+    private GameObject popSpots;
+
+    private GameObject terSpots;
 
 
     public void updateLocations()
     {
 
-        terrainGeneration.UpdateTerrainMap();
+        terrainGeneration.UpdateTerrainMap(populationGeneration.mapSize);
 
-
-        populationGeneration.UpdatePopulationMap();
+        populationGeneration.UpdatePopulationMap(terrainGeneration.getTerrainPoints());
         
         //var tempList = noiseGeneration.getHighPopAreas();
 
@@ -33,6 +38,8 @@ public class PopulationPoints : MonoBehaviour {
 
         popList = populationGeneration.getHighPopAreas();
         hotspotGeneration(populationGeneration.getHighPopAreas());
+
+        terrainSpotGeneration(terrainGeneration.getTerrainPoints());
         
         NearestNeighbourFinder.roadConnections(populationHotSpots, populationGeneration.mapSize, populationGeneration.seed);
 
@@ -62,8 +69,16 @@ public class PopulationPoints : MonoBehaviour {
         return true;
     }
 
-    void hotspotGeneration(List<Vector2> hotspots)
+    void hotspotGeneration(List<Vector3> hotspots)
     {
+
+        if(GameObject.Find("Population Points") == null)
+        {
+            popSpots = new GameObject();
+            popSpots.name = "Population Points";
+            popSpots.transform.position = Vector3.zero;
+        }
+
         if (populationHotSpots.Count > 0)
         {
             foreach (GameObject hotSpot in populationHotSpots)
@@ -74,13 +89,43 @@ public class PopulationPoints : MonoBehaviour {
             populationHotSpots.Clear();
         }
         
-        foreach (Vector2 location in popList)
+        foreach (Vector3 location in hotspots)
         {
-            Vector3 pos = new Vector3(location.x, 1, location.y);
-            GameObject popHub = Instantiate(populationHubObject, pos, Quaternion.identity, transform);
+            GameObject popHub = Instantiate(populationHubObject, location, Quaternion.identity, popSpots.transform);
             popHub.name = "Hotspot location " + popList.IndexOf(location);
             populationHotSpots.Add(popHub);
         }
+
+        return;
+    }
+
+    void terrainSpotGeneration(List<Vector3> terrainPoints)
+    {
+        if (GameObject.Find("Terrain Points") == null)
+        {
+            terSpots = new GameObject();
+            terSpots.name = "Terrain Points";
+            terSpots.transform.position = Vector3.zero;
+        }
+
+        if (terrainSpots.Count > 0)
+        {
+            foreach (GameObject terrainSpot in terrainSpots)
+            {
+                Destroy(terrainSpot);
+            }
+
+            terrainSpots.Clear();
+        }
+
+        foreach (Vector3 point in terrainPoints)
+        {
+            GameObject terSpot = Instantiate(populationHubObject, point, Quaternion.identity, terSpots.transform);
+            terSpot.name = "Terrain spot " + terrainPoints.IndexOf(point);
+            terrainSpots.Add(terSpot);
+        }
+
+
 
         return;
     }
@@ -113,16 +158,13 @@ public class PopulationPoints : MonoBehaviour {
                 float distanceBetween = Vector3.Distance(location.transform.position, point.transform.position);
                 GameObject newRoad = Instantiate(road, midPoint, Quaternion.identity, location.transform);
                 newRoad.transform.LookAt(point.transform);
-                newRoad.transform.Rotate(new Vector3(0, 90, 0));
                 newRoad.name = "Road " + location.GetComponent<StoredNearestNeighbours>().ConnectedLocations.IndexOf(point);
-                newRoad.transform.localScale = new Vector3(distanceBetween, newRoad.transform.localScale.y, newRoad.transform.localScale.z);
+                newRoad.transform.localScale = new Vector3(newRoad.transform.localScale.x, newRoad.transform.localScale.y, distanceBetween);
                 //Add to storage in StoredNearestNeighbours?
 
 
             }
         }
-
-
 
         return;
     }
