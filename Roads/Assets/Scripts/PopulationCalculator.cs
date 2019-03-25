@@ -14,25 +14,19 @@ public class PopulationCalculator : MonoBehaviour {
 
     public int populationAreaSize;
 
-    //public int terrainAreaSize;
-
     public int seed;
 
     private List<Vector3> noiseMap;
 
     private List<Vector2> tempLocVec = new List<Vector2>();
 
-    //private List<Vector3> tempTerVec = new List<Vector3>();
-
     private List<Vector2> HighPopDensityLocations = new List<Vector2>();
 
     private List<Vector3> HighPopDensityAreas = new List<Vector3>();
 
-    //private List<Vector2> MediumPopDensityLocations = new List<Vector2>();
-
-    public void UpdatePopulationMap(List<Vector3> terrainPoints)
+    public void UpdatePopulationMap(float[,] terrainPoints)
     {
-        List<Vector3> tempPopMap = Noise.GenerateNoiseMap(mapSize, noiseScale);
+        List<Vector3> tempPopMap = Noise.GenerateNoiseMapList(mapSize, noiseScale);
 
         if (tempPopMap != noiseMap)
         {
@@ -42,7 +36,7 @@ public class PopulationCalculator : MonoBehaviour {
         }
     }
 
-    public void DrawPopulationMap(List<Vector3> noiseMap, List<Vector3> terrainPoints)
+    public void DrawPopulationMap(List<Vector3> noiseMap, float[,] terrainPoints)
     {
         HighPopDensityLocations.Clear();
         HighPopDensityAreas.Clear();
@@ -84,7 +78,7 @@ public class PopulationCalculator : MonoBehaviour {
                 tempY += tempLocVec[v].y;
             }
 
-            Vector3 tempVec3 = new Vector3(tempX / tempCount, 0, tempY / tempCount);
+            Vector3 tempVec3 = new Vector3((int)(tempX / tempCount), 0, (int)(tempY / tempCount));
 
             if(!HighPopDensityAreas.Contains(tempVec3))
             {
@@ -92,33 +86,13 @@ public class PopulationCalculator : MonoBehaviour {
             }
         }
 
-        //for each in HPDA, check against all terrain points and store any points within x area, average area out and set HPDA y to average area y
-
         for (int i = 0; i < HighPopDensityAreas.Count; i++)
         {
-            //tempTerVec.Clear();
-            
-            float closestDist = float.MaxValue;
-            Vector3 clostestVector = new Vector3();
+            int x = (int)HighPopDensityAreas[i].x;
+            int y = (int)HighPopDensityAreas[i].y;
 
-            foreach (Vector3 terrainSpot in terrainPoints)
-            {
-                if (closestDist > Vector3.Distance(HighPopDensityAreas[i], new Vector3(terrainSpot.x, 0, terrainSpot.z)))
-                {
-                    closestDist = Vector3.Distance(HighPopDensityAreas[i], new Vector3(terrainSpot.x, 0, terrainSpot.z));
-                    clostestVector = terrainSpot;
-                }
+            HighPopDensityAreas[i] = new Vector3(HighPopDensityAreas[i].x, terrainPoints[x, y], HighPopDensityAreas[i].z);
 
-
-                //if ((terrainSpot.x + terrainAreaSize > HDPA.x) && (terrainSpot.x - terrainAreaSize < HDPA.x) &&
-                //    (terrainSpot.y + terrainAreaSize > HDPA.y) && (terrainSpot.y - terrainAreaSize < HDPA.y))
-                //{
-                //    tempTerVec.Add(terrainSpot);
-                //}
-
-            }
-
-            HighPopDensityAreas[i] = new Vector3(HighPopDensityAreas[i].x, clostestVector.y, HighPopDensityAreas[i].z);
         }
     }
 

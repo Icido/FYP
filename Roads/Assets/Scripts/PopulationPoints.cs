@@ -99,7 +99,7 @@ public class PopulationPoints : MonoBehaviour {
         return;
     }
 
-    void terrainSpotGeneration(List<Vector3> terrainPoints)
+    void terrainSpotGeneration(float[,] terrainPoints)
     {
         if (GameObject.Find("Terrain Points") == null)
         {
@@ -118,14 +118,17 @@ public class PopulationPoints : MonoBehaviour {
             terrainSpots.Clear();
         }
 
-        foreach (Vector3 point in terrainPoints)
+        for (int y = 0; y < terrainPoints.GetLength(1); y++)
         {
-            GameObject terSpot = Instantiate(populationHubObject, point, Quaternion.identity, terSpots.transform);
-            terSpot.name = "Terrain spot " + terrainPoints.IndexOf(point);
-            terrainSpots.Add(terSpot);
+            for (int x = 0; x < terrainPoints.GetLength(0); x++)
+            {
+                GameObject terSpot = Instantiate(populationHubObject, new Vector3(x, terrainPoints[x,y], y), Quaternion.identity, terSpots.transform);
+                terSpot.name = "Terrain spot " + (y * terrainPoints.GetLength(1) + x);
+                terrainSpots.Add(terSpot);
+            }
         }
 
-
+        terSpots.SetActive(false);
 
         return;
     }
@@ -151,6 +154,8 @@ public class PopulationPoints : MonoBehaviour {
         {
             foreach (GameObject point in location.GetComponent<StoredNearestNeighbours>().ConnectedLocations)
             {
+                //roadConnections(point, location, terrainGeneration.getTerrainPoints());
+                
                 Vector3 midPoint = new Vector3((point.transform.position.x + location.transform.position.x) / 2,
                                                (point.transform.position.y + location.transform.position.y) / 2,
                                                (point.transform.position.z + location.transform.position.z) / 2);
@@ -165,6 +170,20 @@ public class PopulationPoints : MonoBehaviour {
 
             }
         }
+
+        return;
+    }
+
+
+
+    void roadConnections(Vector3 startPoint, Vector3 finishPoint, List<Vector3> terrainPoints)
+    {
+        //Find distance between start and finish
+        //Vector3 tempStartPoint = startPoint;
+        //movetoward finish point, then scout for other roads
+        //if there's another road, recalculate toward it and find the closest point on that road to finishPoint
+
+
 
         return;
     }

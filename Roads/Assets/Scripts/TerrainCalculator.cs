@@ -9,42 +9,70 @@ public class TerrainCalculator : MonoBehaviour {
     [Range(1f, 50f)]
     public float noiseScale;
 
-    public float persistance;
+    public float amplitude;
 
-    private List<Vector3> noiseMap;
+    private float[,] terrainMap;
 
-    private List<Vector3> terrainMap = new List<Vector3>();
+    private float maxTerrainValue = float.MinValue;
+
+    private float minTerrainValue = float.MaxValue;
+
+    private float averageTerrainValue = 0f;
 
     public void UpdateTerrainMap(int popMapSize)
     {
-        List<Vector3> tempPopMap = Noise.GenerateNoiseMap(mapSize, noiseScale);
-
         float terrainToMapScale = (float)mapSize / (float)popMapSize;
 
-        if (tempPopMap != noiseMap)
-        {
-            noiseMap = tempPopMap;
+        float[,] tempTerMap = Noise.GenerateNoiseMapArray(mapSize, noiseScale, amplitude);
 
-            ResizeTerrainMap(noiseMap, terrainToMapScale);
+
+        if (tempTerMap != terrainMap)
+        {
+            terrainMap = tempTerMap;
+
+            GatherTerrainData(terrainMap);
         }
     }
 
-    public void ResizeTerrainMap(List<Vector3> noiseMap, float terrainToMapScale)
+    public void GatherTerrainData(float[,] noiseMap)
     {
-        terrainMap.Clear();
-
-        for (int i = 0; i < noiseMap.Count; i++)
+        for (int y = 0; y < mapSize; y++)
         {
-            noiseMap[i] = new Vector3(noiseMap[i].x / terrainToMapScale, noiseMap[i].y * persistance, noiseMap[i].z / terrainToMapScale);
-            terrainMap.Add(noiseMap[i]);
+            for (int x = 0; x < mapSize; x++)
+            {
+                if (maxTerrainValue < noiseMap[x, y])
+                    maxTerrainValue = noiseMap[x, y];
+
+                if (minTerrainValue > noiseMap[x, y])
+                    minTerrainValue = noiseMap[x, y];
+
+                averageTerrainValue += noiseMap[x, y];
+            }
         }
 
+        averageTerrainValue /= (mapSize * mapSize);
+
+        return;
     }
-    
-    public List<Vector3> getTerrainPoints()
+
+    public float[,] getTerrainPoints()
     {
         return terrainMap;
     }
 
+    public float getMaxTerrainValue()
+    {
+        return maxTerrainValue;
+    }
+
+    public float getMinTerrainValue()
+    {
+        return minTerrainValue;
+    }
+
+    public float getAverageTerrainValue()
+    {
+        return averageTerrainValue;
+    }
 
 }
