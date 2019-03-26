@@ -154,7 +154,7 @@ public class PopulationPoints : MonoBehaviour {
         {
             foreach (GameObject point in location.GetComponent<StoredNearestNeighbours>().ConnectedLocations)
             {
-                //roadConnections(point, location, terrainGeneration.getTerrainPoints());
+                roadConnections(point.transform.position, location.transform.position, terrainGeneration.getTerrainPoints());
                 
                 Vector3 midPoint = new Vector3((point.transform.position.x + location.transform.position.x) / 2,
                                                (point.transform.position.y + location.transform.position.y) / 2,
@@ -174,11 +174,18 @@ public class PopulationPoints : MonoBehaviour {
         return;
     }
 
-
-
-    void roadConnections(Vector3 startPoint, Vector3 finishPoint, List<Vector3> terrainPoints)
+    void roadConnections(Vector3 startPoint, Vector3 finishPoint, float[,] terrainPoints)
     {
         //Find distance between start and finish
+        Vector3 groundedStartPoint = new Vector3(startPoint.x, 0, startPoint.z);
+        Vector3 groundedFinishPoint = new Vector3(finishPoint.x, 0, finishPoint.z);
+
+        float linearDistance = (groundedFinishPoint - groundedStartPoint).sqrMagnitude;
+        Debug.Log("Linear distance " + linearDistance);
+
+        float heightDistance = startPoint.y - finishPoint.x;
+        Debug.Log("Height distance " + heightDistance);
+
         //Vector3 tempStartPoint = startPoint;
         //movetoward finish point, then scout for other roads
         //if there's another road, recalculate toward it and find the closest point on that road to finishPoint

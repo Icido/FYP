@@ -178,7 +178,7 @@ MonoBehaviour:
   mapSize: 100
   highDensityLimit: 0.95
   noiseScale: 4
-  areaSize: 3
+  populationAreaSize: 3
   seed: 0
 --- !u!114 &380316152
 MonoBehaviour:
@@ -205,7 +205,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mapSize: 100
   noiseScale: 35
-  persistance: 40
+  amplitude: 40
 --- !u!1 &832425572
 GameObject:
   m_ObjectHideFlags: 0
