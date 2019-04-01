@@ -206,7 +206,7 @@ public class PopulationPoints : MonoBehaviour {
         return;
     }
 
-    List<Vector2> getAdjacentLocations(int maxTerrainEdge, Vector2 point)
+    List<Vector2> getAdjacentLocations(int maxTerrainEdge, Vector2 point, Vector2 parentPoint)
     {
         List<Vector2> adjacentLocations = new List<Vector2>();
 
@@ -240,6 +240,8 @@ public class PopulationPoints : MonoBehaviour {
             adjacentLocations.Add(new Vector2(point.x + 1, point.y - 1));
             adjacentLocations.Add(new Vector2(point.x, point.y - 1));
 
+            adjacentLocations.Remove(parentPoint);
+
             return adjacentLocations;
         }
         else if(isTopVerticleEdge && isRightHorizontalEdge)
@@ -247,6 +249,8 @@ public class PopulationPoints : MonoBehaviour {
             adjacentLocations.Add(new Vector2(point.x - 1, point.y));
             adjacentLocations.Add(new Vector2(point.x - 1, point.y - 1));
             adjacentLocations.Add(new Vector2(point.x, point.y - 1));
+
+            adjacentLocations.Remove(parentPoint);
 
             return adjacentLocations;
         }
@@ -256,6 +260,8 @@ public class PopulationPoints : MonoBehaviour {
             adjacentLocations.Add(new Vector2(point.x + 1, point.y + 1));
             adjacentLocations.Add(new Vector2(point.x, point.y + 1));
 
+            adjacentLocations.Remove(parentPoint);
+
             return adjacentLocations;
         }
         else if(isBottomVerticalEdge && isRightHorizontalEdge)
@@ -263,6 +269,8 @@ public class PopulationPoints : MonoBehaviour {
             adjacentLocations.Add(new Vector2(point.x - 1, point.y));
             adjacentLocations.Add(new Vector2(point.x - 1, point.y + 1));
             adjacentLocations.Add(new Vector2(point.x, point.y + 1));
+
+            adjacentLocations.Remove(parentPoint);
 
             return adjacentLocations;
         }
@@ -274,6 +282,8 @@ public class PopulationPoints : MonoBehaviour {
             adjacentLocations.Add(new Vector2(point.x + 1, point.y - 1));
             adjacentLocations.Add(new Vector2(point.x + 1, point.y));
 
+            adjacentLocations.Remove(parentPoint);
+
             return adjacentLocations;
         }
         else if(isBottomVerticalEdge)
@@ -283,6 +293,8 @@ public class PopulationPoints : MonoBehaviour {
             adjacentLocations.Add(new Vector2(point.x, point.y + 1));
             adjacentLocations.Add(new Vector2(point.x + 1, point.y + 1));
             adjacentLocations.Add(new Vector2(point.x + 1, point.y));
+
+            adjacentLocations.Remove(parentPoint);
 
             return adjacentLocations;
         }
@@ -294,6 +306,8 @@ public class PopulationPoints : MonoBehaviour {
             adjacentLocations.Add(new Vector2(point.x + 1, point.y - 1));
             adjacentLocations.Add(new Vector2(point.x, point.y - 1));
 
+            adjacentLocations.Remove(parentPoint);
+
             return adjacentLocations;
         }
         else if(isRightHorizontalEdge)
@@ -303,6 +317,8 @@ public class PopulationPoints : MonoBehaviour {
             adjacentLocations.Add(new Vector2(point.x - 1, point.y));
             adjacentLocations.Add(new Vector2(point.x - 1, point.y - 1));
             adjacentLocations.Add(new Vector2(point.x, point.y - 1));
+
+            adjacentLocations.Remove(parentPoint);
 
             return adjacentLocations;
         }
@@ -319,6 +335,8 @@ public class PopulationPoints : MonoBehaviour {
             adjacentLocations.Add(new Vector2(point.x - 1, point.y - 1));
             adjacentLocations.Add(new Vector2(point.x - 1, point.y));
             adjacentLocations.Add(new Vector2(point.x - 1, point.y + 1));
+
+            adjacentLocations.Remove(parentPoint);
 
             return adjacentLocations;
         }
