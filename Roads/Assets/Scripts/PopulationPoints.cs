@@ -26,33 +26,33 @@ public class PopulationPoints : MonoBehaviour {
 
     private float[,] terrainPoints;
 
-    private AStarPathfinding aStar;
-
-
-
-    private void Start()
-    {
-        aStar = new AStarPathfinding();
-    }
+    private AStarPathfinding aStar = new AStarPathfinding();
 
 
     public void updateLocations()
     {
-
+        
         terrainGeneration.UpdateTerrainMap(); //TODO: Inverse mapToTerrain the other way, so that the map maps to the terrain instead
+        Debug.Log("Finished Terrain generation");
+
 
         terrainPoints = terrainGeneration.getTerrainPoints();
 
         populationGeneration.UpdatePopulationMap(terrainPoints);
+        Debug.Log("Finished Population generation");
         
         popList = populationGeneration.getHighPopAreas();
         hotspotGeneration(populationGeneration.getHighPopAreas());
+        Debug.Log("Finished Hotspot generation");
 
         terrainSpotGeneration(terrainPoints);
-        
+        Debug.Log("Finished TerrainPoint generation");
+
         NearestNeighbourFinder.roadConnections(populationHotSpots, populationGeneration.mapSize, populationGeneration.seed);
+        Debug.Log("Finished finding nearest neighbours");
 
         roadGeneration(populationHotSpots, terrainPoints);
+        Debug.Log("Finished Road generation");
 
         return;
     }
@@ -136,8 +136,6 @@ public class PopulationPoints : MonoBehaviour {
                 }
             }
         }
-
-
 
         foreach (GameObject location in locations)
         {

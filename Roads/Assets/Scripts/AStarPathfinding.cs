@@ -11,7 +11,7 @@ public class AStarPathfinding {
     Dictionary<Point, int> gScore = new Dictionary<Point, int>();
 
     //Cost of start to goal through THIS point
-    Dictionary<Point, int> fScore = new Dictionary<Point, int>();
+    Dictionary<Point, float> fScore = new Dictionary<Point, float>();
 
     Dictionary<Point, Point> nodeLinks = new Dictionary<Point, Point>();
 
@@ -39,6 +39,11 @@ public class AStarPathfinding {
                 return reconstruction(current);
             }
 
+            if (openSet.Count > terrainPoints.Length)
+            {
+                Debug.Log("Can't find road!");
+                Debug.Break();
+            }
 
             openSet.Remove(current);
             closedSet[current] = true;
@@ -63,7 +68,7 @@ public class AStarPathfinding {
 
                 nodeLinks[neighbour] = current;
                 gScore[neighbour] = projectedG;
-                fScore[neighbour] = projectedG + Heuristic(neighbour, finish);
+                fScore[neighbour] = projectedG + Heuristic(neighbour, finish) + terrainPoints[neighbour.X, neighbour.Y];
             }
         }
 
@@ -95,9 +100,9 @@ public class AStarPathfinding {
         return bestPoint;
     }
 
-    private int getFScore(Point node)
+    private float getFScore(Point node)
     {
-        int score = int.MaxValue;
+        float score = float.MaxValue;
         fScore.TryGetValue(node, out score);
         return score;
     }
