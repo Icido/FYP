@@ -95,7 +95,7 @@ public static class NearestNeighbourFinder {
             //Catches if 
             if (savedLoc1index == -1)
             {
-                Debug.Log("No available connections for " + location.name);
+                //Debug.Log("No available connections for " + location.name);
                 continue;
             }
 
@@ -160,12 +160,11 @@ public static class NearestNeighbourFinder {
 
 
 
-        foreach (GameObject location in locations)
-        {
-            if (location.GetComponent<StoredNearestNeighbours>().maxNumberOfConnections - location.GetComponent<StoredNearestNeighbours>().currentNumberOfConnections > 0)
-                Debug.Log("Empty slots available at location: " + location.name + ", number of slots: " + (location.GetComponent<StoredNearestNeighbours>().maxNumberOfConnections - location.GetComponent<StoredNearestNeighbours>().currentNumberOfConnections));
-
-        }
+        //foreach (GameObject location in locations)
+        //{
+        //    if (location.GetComponent<StoredNearestNeighbours>().maxNumberOfConnections - location.GetComponent<StoredNearestNeighbours>().currentNumberOfConnections > 0)
+        //        Debug.Log("Empty slots available at location: " + location.name + ", number of slots: " + (location.GetComponent<StoredNearestNeighbours>().maxNumberOfConnections - location.GetComponent<StoredNearestNeighbours>().currentNumberOfConnections));
+        //}
 
 
     }

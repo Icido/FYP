@@ -104,7 +104,8 @@ public class PopulationPoints : MonoBehaviour {
 
     void terrainSpotGeneration(float[,] terrainPoints)
     {
-        if (GameObject.Find("Terrain Points") == null)
+
+        if (GameObject.Find("Terrain Points") == terSpots)
         {
             terSpots = new GameObject();
             terSpots.name = "Terrain Points";
