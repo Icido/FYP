@@ -17,7 +17,7 @@ public class AStarPathfinding {
 
     List<Point> neighbours = new List<Point>();
 
-    private float maxAngle = 30f;
+    private float maxAngle = 45f;
 
 
     public List<Vector2Int> roadConnections(Vector3 startPoint, Vector3 finishPoint, float[,] terrainPoints)
@@ -42,7 +42,7 @@ public class AStarPathfinding {
             if (openSet.Count > terrainPoints.Length)
             {
                 Debug.Log("Can't find road!");
-                Debug.Break();
+                Debug.DebugBreak();
             }
 
             openSet.Remove(current);
@@ -61,14 +61,13 @@ public class AStarPathfinding {
 
                 if (!openSet.ContainsKey(neighbour))
                     openSet[neighbour] = true;
-
                 else if (projectedG >= getGScore(neighbour))
                     continue;
 
 
                 nodeLinks[neighbour] = current;
                 gScore[neighbour] = projectedG;
-                fScore[neighbour] = projectedG + Heuristic(neighbour, finish) + terrainPoints[neighbour.X, neighbour.Y];
+                fScore[neighbour] = projectedG + Heuristic(neighbour, finish) + Mathf.Abs(terrainPoints[neighbour.X, neighbour.Y] - terrainPoints[current.X, current.Y]);
             }
         }
 
@@ -85,7 +84,7 @@ public class AStarPathfinding {
 
     private Point nextBest()
     {
-        int best = int.MaxValue;
+        float best = float.MaxValue;
         Point bestPoint = null;
         foreach(var node in openSet.Keys)
         {
