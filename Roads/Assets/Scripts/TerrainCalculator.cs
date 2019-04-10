@@ -19,10 +19,8 @@ public class TerrainCalculator : MonoBehaviour {
 
     private float averageTerrainValue = 0f;
 
-    public void UpdateTerrainMap(int popMapSize)
+    public void UpdateTerrainMap()
     {
-        float terrainToMapScale = (float)mapSize / (float)popMapSize;
-
         float[,] tempTerMap = Noise.GenerateNoiseMapArray(mapSize, noiseScale, amplitude);
 
 

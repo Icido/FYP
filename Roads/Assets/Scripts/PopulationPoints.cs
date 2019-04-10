@@ -18,58 +18,43 @@ public class PopulationPoints : MonoBehaviour {
 
     public List<Vector3> popList = new List<Vector3>();
 
-    private List<Vector2> openQueue = new List<Vector2>();
-    private List<Vector2> closedQueue = new List<Vector2>();
+    private List<Vector2Int> roadConnectionsList = new List<Vector2Int>();
 
     private GameObject popSpots;
 
     private GameObject terSpots;
 
+    private float[,] terrainPoints;
+
+    private AStarPathfinding aStar;
+
+
+
+    private void Start()
+    {
+        aStar = new AStarPathfinding();
+    }
+
 
     public void updateLocations()
     {
 
-        terrainGeneration.UpdateTerrainMap(populationGeneration.mapSize);
+        terrainGeneration.UpdateTerrainMap(); //TODO: Inverse mapToTerrain the other way, so that the map maps to the terrain instead
 
-        populationGeneration.UpdatePopulationMap(terrainGeneration.getTerrainPoints());
+        terrainPoints = terrainGeneration.getTerrainPoints();
+
+        populationGeneration.UpdatePopulationMap(terrainPoints);
         
-        //var tempList = noiseGeneration.getHighPopAreas();
-
-        //if (checkLists(popList, tempList) == false)
-        //{
-        //    popList = tempList;
-
         popList = populationGeneration.getHighPopAreas();
         hotspotGeneration(populationGeneration.getHighPopAreas());
 
-        terrainSpotGeneration(terrainGeneration.getTerrainPoints());
+        terrainSpotGeneration(terrainPoints);
         
         NearestNeighbourFinder.roadConnections(populationHotSpots, populationGeneration.mapSize, populationGeneration.seed);
 
-        roadGeneration(populationHotSpots);
-
-        //}
+        roadGeneration(populationHotSpots, terrainPoints);
 
         return;
-    }
-
-    bool checkLists(List<Vector2> list1, List<Vector2> list2)
-    {
-        if ((list1 == null) && (list2 == null))
-            return true;
-        else if ((list1 == null) || (list2 == null))
-            return false;
-
-        if (list1.Count != list2.Count)
-            return false;
-
-        for (int i = 0; i < list1.Count; i++)
-        {
-            if (list1[i] != list2[i])
-                return false;
-        }
-
-        return true;
     }
 
     void hotspotGeneration(List<Vector3> hotspots)
@@ -137,7 +122,7 @@ public class PopulationPoints : MonoBehaviour {
         return;
     }
 
-    void roadGeneration(List<GameObject> locations)
+    void roadGeneration(List<GameObject> locations, float[,] terrPoints)
     {
         foreach (GameObject loc in locations)
         {
@@ -158,58 +143,36 @@ public class PopulationPoints : MonoBehaviour {
         {
             foreach (GameObject point in location.GetComponent<StoredNearestNeighbours>().ConnectedLocations)
             {
-                closedQueue.Clear();
-                openQueue.Clear();
-
-                roadConnections(point.transform.position, location.transform.position, terrainGeneration.getTerrainPoints());
-                
-                Vector3 midPoint = new Vector3((point.transform.position.x + location.transform.position.x) / 2,
-                                               (point.transform.position.y + location.transform.position.y) / 2,
-                                               (point.transform.position.z + location.transform.position.z) / 2);
-
-                float distanceBetween = Vector3.Distance(location.transform.position, point.transform.position);
-                GameObject newRoad = Instantiate(road, midPoint, Quaternion.identity, location.transform);
-                newRoad.transform.LookAt(point.transform);
-                newRoad.name = "Road " + location.GetComponent<StoredNearestNeighbours>().ConnectedLocations.IndexOf(point);
-                newRoad.transform.localScale = new Vector3(newRoad.transform.localScale.x, newRoad.transform.localScale.y, distanceBetween);
-                //Add to storage in StoredNearestNeighbours?
+                roadConnectionsList.Clear();
+                roadConnectionsList = aStar.roadConnections(point.transform.position, location.transform.position, terrPoints);
 
 
+                for (int i = 0; i < roadConnectionsList.Count - 1; i++)
+                {
+                    Vector3 startPosition = new Vector3(roadConnectionsList[i].x, terrPoints[roadConnectionsList[i].x, roadConnectionsList[i].y], roadConnectionsList[i].y);
+
+                    Vector3 endPosition = new Vector3(roadConnectionsList[i + 1].x, terrPoints[roadConnectionsList[i + 1].x, roadConnectionsList[i + 1].y], roadConnectionsList[i + 1].y);
+
+                    Vector3 midPoint = new Vector3((startPosition.x + endPosition.x) / 2, (startPosition.y + endPosition.y) / 2, (startPosition.z + endPosition.z) / 2);
+
+                    float distanceBetween = Vector3.Distance(startPosition, endPosition);
+                    GameObject newRoad = Instantiate(road, midPoint, Quaternion.identity, location.transform);
+                    newRoad.transform.LookAt(point.transform);
+                    newRoad.name = "Road " + location.GetComponent<StoredNearestNeighbours>().ConnectedLocations.IndexOf(point);
+                    newRoad.transform.localScale = new Vector3(newRoad.transform.localScale.x, newRoad.transform.localScale.y, distanceBetween);
+                    //Add to storage in StoredNearestNeighbours?
+                }
             }
         }
 
         return;
     }
 
-    void roadConnections(Vector3 startPoint, Vector3 finishPoint, float[,] terrainPoints)
+
+
+    List<Vector2Int> get8AdjacentLocations(int maxTerrainEdge, Vector2Int Vector2Int, Vector2Int parentVector2Int)
     {
-        //Find distance between start and finish
-        Vector3 groundedStartPoint = new Vector3(startPoint.x, 0, startPoint.z);
-        Vector3 groundedFinishPoint = new Vector3(finishPoint.x, 0, finishPoint.z);
-
-        float linearDistance = (groundedFinishPoint - groundedStartPoint).sqrMagnitude;
-        //Debug.Log("Linear distance " + linearDistance);
-
-        float heightDistance = startPoint.y - finishPoint.y;
-        //Debug.Log("Height distance " + heightDistance);
-
-        //int maxEdge = terrainPoints.Length - 1;
-        //getAdjacentLocations(maxEdge, point);
-
-
-
-        //Vector3 tempStartPoint = startPoint;
-        //movetoward finish point, then scout for other roads
-        //if there's another road, recalculate toward it and find the closest point on that road to finishPoint
-
-
-
-        return;
-    }
-
-    List<Vector2> getAdjacentLocations(int maxTerrainEdge, Vector2 point, Vector2 parentPoint)
-    {
-        List<Vector2> adjacentLocations = new List<Vector2>();
+        List<Vector2Int> adjacentLocations = new List<Vector2Int>();
 
         bool isLeftHorizontalEdge = false;
         bool isRightHorizontalEdge = false;
@@ -217,129 +180,251 @@ public class PopulationPoints : MonoBehaviour {
         bool isTopVerticleEdge = false;
         bool isBottomVerticalEdge = false;
 
-        if(point.x == 0)
+        if (Vector2Int.x == 0)
         {
             isLeftHorizontalEdge = true;
         }
-        else if(point.x == maxTerrainEdge)
+        else if (Vector2Int.x == maxTerrainEdge)
         {
             isRightHorizontalEdge = true;
         }
 
-        if(point.y == 0)
+        if (Vector2Int.y == 0)
         {
             isBottomVerticalEdge = true;
         }
-        else if(point.y == maxTerrainEdge)
+        else if (Vector2Int.y == maxTerrainEdge)
         {
             isTopVerticleEdge = true;
         }
 
-        if(isTopVerticleEdge && isLeftHorizontalEdge)
+        if (isTopVerticleEdge && isLeftHorizontalEdge)
         {
-            adjacentLocations.Add(new Vector2(point.x + 1, point.y));
-            adjacentLocations.Add(new Vector2(point.x + 1, point.y - 1));
-            adjacentLocations.Add(new Vector2(point.x, point.y - 1));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x + 1, Vector2Int.y));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x + 1, Vector2Int.y - 1));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y - 1));
 
-            adjacentLocations.Remove(parentPoint);
+            adjacentLocations.Remove(parentVector2Int);
 
             return adjacentLocations;
         }
-        else if(isTopVerticleEdge && isRightHorizontalEdge)
+        else if (isTopVerticleEdge && isRightHorizontalEdge)
         {
-            adjacentLocations.Add(new Vector2(point.x - 1, point.y));
-            adjacentLocations.Add(new Vector2(point.x - 1, point.y - 1));
-            adjacentLocations.Add(new Vector2(point.x, point.y - 1));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x - 1, Vector2Int.y));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x - 1, Vector2Int.y - 1));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y - 1));
 
-            adjacentLocations.Remove(parentPoint);
+            adjacentLocations.Remove(parentVector2Int);
 
             return adjacentLocations;
         }
-        else if(isBottomVerticalEdge && isLeftHorizontalEdge)
+        else if (isBottomVerticalEdge && isLeftHorizontalEdge)
         {
-            adjacentLocations.Add(new Vector2(point.x + 1, point.y));
-            adjacentLocations.Add(new Vector2(point.x + 1, point.y + 1));
-            adjacentLocations.Add(new Vector2(point.x, point.y + 1));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x + 1, Vector2Int.y));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x + 1, Vector2Int.y + 1));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y + 1));
 
-            adjacentLocations.Remove(parentPoint);
+            adjacentLocations.Remove(parentVector2Int);
 
             return adjacentLocations;
         }
-        else if(isBottomVerticalEdge && isRightHorizontalEdge)
+        else if (isBottomVerticalEdge && isRightHorizontalEdge)
         {
-            adjacentLocations.Add(new Vector2(point.x - 1, point.y));
-            adjacentLocations.Add(new Vector2(point.x - 1, point.y + 1));
-            adjacentLocations.Add(new Vector2(point.x, point.y + 1));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x - 1, Vector2Int.y));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x - 1, Vector2Int.y + 1));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y + 1));
 
-            adjacentLocations.Remove(parentPoint);
+            adjacentLocations.Remove(parentVector2Int);
 
             return adjacentLocations;
         }
-        else if(isTopVerticleEdge)
+        else if (isTopVerticleEdge)
         {
-            adjacentLocations.Add(new Vector2(point.x - 1, point.y));
-            adjacentLocations.Add(new Vector2(point.x - 1, point.y - 1));
-            adjacentLocations.Add(new Vector2(point.x, point.y - 1));
-            adjacentLocations.Add(new Vector2(point.x + 1, point.y - 1));
-            adjacentLocations.Add(new Vector2(point.x + 1, point.y));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x - 1, Vector2Int.y));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x - 1, Vector2Int.y - 1));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y - 1));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x + 1, Vector2Int.y - 1));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x + 1, Vector2Int.y));
 
-            adjacentLocations.Remove(parentPoint);
+            adjacentLocations.Remove(parentVector2Int);
 
             return adjacentLocations;
         }
-        else if(isBottomVerticalEdge)
+        else if (isBottomVerticalEdge)
         {
-            adjacentLocations.Add(new Vector2(point.x - 1, point.y));
-            adjacentLocations.Add(new Vector2(point.x - 1, point.y + 1));
-            adjacentLocations.Add(new Vector2(point.x, point.y + 1));
-            adjacentLocations.Add(new Vector2(point.x + 1, point.y + 1));
-            adjacentLocations.Add(new Vector2(point.x + 1, point.y));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x - 1, Vector2Int.y));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x - 1, Vector2Int.y + 1));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y + 1));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x + 1, Vector2Int.y + 1));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x + 1, Vector2Int.y));
 
-            adjacentLocations.Remove(parentPoint);
+            adjacentLocations.Remove(parentVector2Int);
 
             return adjacentLocations;
         }
-        else if(isLeftHorizontalEdge)
+        else if (isLeftHorizontalEdge)
         {
-            adjacentLocations.Add(new Vector2(point.x, point.y + 1));
-            adjacentLocations.Add(new Vector2(point.x + 1, point.y + 1));
-            adjacentLocations.Add(new Vector2(point.x + 1, point.y));
-            adjacentLocations.Add(new Vector2(point.x + 1, point.y - 1));
-            adjacentLocations.Add(new Vector2(point.x, point.y - 1));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y + 1));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x + 1, Vector2Int.y + 1));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x + 1, Vector2Int.y));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x + 1, Vector2Int.y - 1));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y - 1));
 
-            adjacentLocations.Remove(parentPoint);
+            adjacentLocations.Remove(parentVector2Int);
 
             return adjacentLocations;
         }
-        else if(isRightHorizontalEdge)
+        else if (isRightHorizontalEdge)
         {
-            adjacentLocations.Add(new Vector2(point.x, point.y + 1));
-            adjacentLocations.Add(new Vector2(point.x - 1, point.y + 1));
-            adjacentLocations.Add(new Vector2(point.x - 1, point.y));
-            adjacentLocations.Add(new Vector2(point.x - 1, point.y - 1));
-            adjacentLocations.Add(new Vector2(point.x, point.y - 1));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y + 1));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x - 1, Vector2Int.y + 1));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x - 1, Vector2Int.y));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x - 1, Vector2Int.y - 1));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y - 1));
 
-            adjacentLocations.Remove(parentPoint);
+            adjacentLocations.Remove(parentVector2Int);
 
             return adjacentLocations;
         }
         else
         {
-            adjacentLocations.Add(new Vector2(point.x, point.y + 1));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y + 1));
 
-            adjacentLocations.Add(new Vector2(point.x + 1, point.y + 1));
-            adjacentLocations.Add(new Vector2(point.x + 1, point.y));
-            adjacentLocations.Add(new Vector2(point.x + 1, point.y - 1));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x + 1, Vector2Int.y + 1));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x + 1, Vector2Int.y));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x + 1, Vector2Int.y - 1));
 
-            adjacentLocations.Add(new Vector2(point.x, point.y - 1));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y - 1));
 
-            adjacentLocations.Add(new Vector2(point.x - 1, point.y - 1));
-            adjacentLocations.Add(new Vector2(point.x - 1, point.y));
-            adjacentLocations.Add(new Vector2(point.x - 1, point.y + 1));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x - 1, Vector2Int.y - 1));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x - 1, Vector2Int.y));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x - 1, Vector2Int.y + 1));
 
-            adjacentLocations.Remove(parentPoint);
+            adjacentLocations.Remove(parentVector2Int);
 
             return adjacentLocations;
         }
     }
+
+    List<Vector2Int> get4AdjacentLocations(int maxTerrainEdge, Vector2Int Vector2Int, Vector2Int parentVector2Int)
+    {
+        List<Vector2Int> adjacentLocations = new List<Vector2Int>();
+
+        bool isLeftHorizontalEdge = false;
+        bool isRightHorizontalEdge = false;
+
+        bool isTopVerticleEdge = false;
+        bool isBottomVerticalEdge = false;
+
+        if (Vector2Int.x == 0)
+        {
+            isLeftHorizontalEdge = true;
+        }
+        else if (Vector2Int.x == maxTerrainEdge)
+        {
+            isRightHorizontalEdge = true;
+        }
+
+        if (Vector2Int.y == 0)
+        {
+            isBottomVerticalEdge = true;
+        }
+        else if (Vector2Int.y == maxTerrainEdge)
+        {
+            isTopVerticleEdge = true;
+        }
+
+        if (isTopVerticleEdge && isLeftHorizontalEdge)
+        {
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x + 1, Vector2Int.y));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y - 1));
+
+            adjacentLocations.Remove(parentVector2Int);
+
+            return adjacentLocations;
+        }
+        else if (isTopVerticleEdge && isRightHorizontalEdge)
+        {
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x - 1, Vector2Int.y));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y - 1));
+
+            adjacentLocations.Remove(parentVector2Int);
+
+            return adjacentLocations;
+        }
+        else if (isBottomVerticalEdge && isLeftHorizontalEdge)
+        {
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x + 1, Vector2Int.y));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y + 1));
+
+            adjacentLocations.Remove(parentVector2Int);
+
+            return adjacentLocations;
+        }
+        else if (isBottomVerticalEdge && isRightHorizontalEdge)
+        {
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x - 1, Vector2Int.y));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y + 1));
+
+            adjacentLocations.Remove(parentVector2Int);
+
+            return adjacentLocations;
+        }
+        else if (isTopVerticleEdge)
+        {
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x - 1, Vector2Int.y));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y - 1));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x + 1, Vector2Int.y));
+
+            adjacentLocations.Remove(parentVector2Int);
+
+            return adjacentLocations;
+        }
+        else if (isBottomVerticalEdge)
+        {
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x - 1, Vector2Int.y));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y + 1));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x + 1, Vector2Int.y));
+
+            adjacentLocations.Remove(parentVector2Int);
+
+            return adjacentLocations;
+        }
+        else if (isLeftHorizontalEdge)
+        {
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y + 1));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x + 1, Vector2Int.y));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y - 1));
+
+            adjacentLocations.Remove(parentVector2Int);
+
+            return adjacentLocations;
+        }
+        else if (isRightHorizontalEdge)
+        {
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y + 1));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x - 1, Vector2Int.y));
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y - 1));
+
+            adjacentLocations.Remove(parentVector2Int);
+
+            return adjacentLocations;
+        }
+        else
+        {
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y + 1));
+
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x + 1, Vector2Int.y));
+
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y - 1));
+
+            adjacentLocations.Add(new Vector2Int(Vector2Int.x - 1, Vector2Int.y));
+
+            adjacentLocations.Remove(parentVector2Int);
+
+            return adjacentLocations;
+        }
+    }
+
+
 }
