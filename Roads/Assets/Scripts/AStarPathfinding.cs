@@ -39,9 +39,10 @@ public class AStarPathfinding {
                 return reconstruction(current);
             }
 
-            if (openSet.Count > terrainPoints.Length)
+            if (openSet.Count > (terrainPoints.Length * terrainPoints.Length))
             {
                 Debug.Log("Can't find road!");
+                Debug.Break();
                 Debug.DebugBreak();
             }
 
@@ -67,7 +68,7 @@ public class AStarPathfinding {
 
                 nodeLinks[neighbour] = current;
                 gScore[neighbour] = projectedG;
-                fScore[neighbour] = projectedG + Heuristic(neighbour, finish) + Mathf.Abs(terrainPoints[neighbour.X, neighbour.Y] - terrainPoints[current.X, current.Y]);
+                fScore[neighbour] = projectedG + Heuristic(neighbour, finish);// + Mathf.Abs(terrainPoints[neighbour.X, neighbour.Y] - terrainPoints[current.X, current.Y]);
             }
         }
 
@@ -165,10 +166,11 @@ public class AStarPathfinding {
         if (isValidNeighbour(terrainPoints, pt, center))
             newNeighbours.Add(pt);
 
-        if (newNeighbours.Count >= 1)
+        if (newNeighbours.Count <= 1)
         {
             Debug.LogError("Not enough neighbours! Could not find suitable neighbour, causing deadlock and no path to be produced.");
             Debug.Break();
+            Debug.DebugBreak();
         }
 
         return newNeighbours;
@@ -198,10 +200,11 @@ public class AStarPathfinding {
         if (isValidNeighbour(terrainPoints, pt, center))
             newNeighbours.Add(pt);
 
-        if (newNeighbours.Count >= 1)
+        if (newNeighbours.Count <= 1)
         {
             Debug.LogError("Not enough neighbours! Could not find suitable neighbour, causing deadlock and no path to be produced.");
             Debug.Break();
+            Debug.DebugBreak();
         }
 
         return newNeighbours;
@@ -216,13 +219,13 @@ public class AStarPathfinding {
         if (point.Y < 0 || point.Y >= terrainPoints.Length)
             return false;
 
-        float dYHeight = Mathf.Abs(point.height - centralPoint.height);
-        float dXLength = Vector2Int.Distance(new Vector2Int(point.X, point.Y), new Vector2Int(centralPoint.X, centralPoint.Y));
-        float angleBetween = Mathf.Atan(dYHeight / dXLength) * Mathf.Rad2Deg;
+        //float dYHeight = Mathf.Abs(point.height - centralPoint.height);
+        //float dXLength = Vector2Int.Distance(new Vector2Int(point.X, point.Y), new Vector2Int(centralPoint.X, centralPoint.Y));
+        //float angleBetween = Mathf.Atan(dYHeight / dXLength) * Mathf.Rad2Deg;
 
-        //Checks if the angle is too step between this point and the central point
-        if (angleBetween > maxAngle)
-            return false;
+        ////Checks if the angle is too step between this point and the central point
+        //if (angleBetween > maxAngle)
+        //    return false;
 
 
         return true;
@@ -237,12 +240,8 @@ public class Point
 
     public float height;
 
-    public Point(int x, int y) { X = x; Y = y; }
     public Point(int x, int y, float h) { X = x; Y = y; height = h; }
-    public Point(float x, float y) { X = (int)x; Y = (int)y; }
     public Point(Vector3 v3) { X = (int)v3.x; Y = (int)v3.z; height = v3.y; }
-    public Point(Vector2 v2) { X = (int)v2.x; Y = (int)v2.y; }
     public Point(Vector2 v2, float h) { X = (int)v2.x; Y = (int)v2.y; height = h; }
-    public Point(Vector2Int v2) { X = v2.x; Y = v2.y; }
     public Point(Vector2Int v2, float h) { X = v2.x; Y = v2.y; height = h; }
 }

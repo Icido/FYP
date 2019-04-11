@@ -78,7 +78,7 @@ public class PopulationCalculator : MonoBehaviour {
                 tempY += tempLocVec[v].y;
             }
 
-            Vector3 tempVec3 = new Vector3((int)(tempX / tempCount), 0, (int)(tempY / tempCount));
+            Vector3 tempVec3 = new Vector3(Mathf.RoundToInt(tempX / tempCount), 0, Mathf.RoundToInt(tempY / tempCount));
 
             if(!HighPopDensityAreas.Contains(tempVec3))
             {
@@ -88,11 +88,7 @@ public class PopulationCalculator : MonoBehaviour {
 
         for (int i = 0; i < HighPopDensityAreas.Count; i++)
         {
-            int x = (int)HighPopDensityAreas[i].x;
-            int y = (int)HighPopDensityAreas[i].y;
-
-            HighPopDensityAreas[i] = new Vector3(HighPopDensityAreas[i].x, terrainPoints[x, y], HighPopDensityAreas[i].z);
-
+            HighPopDensityAreas[i] = new Vector3(HighPopDensityAreas[i].x, terrainPoints[(int)HighPopDensityAreas[i].x, (int)HighPopDensityAreas[i].z], HighPopDensityAreas[i].z);
         }
     }
 

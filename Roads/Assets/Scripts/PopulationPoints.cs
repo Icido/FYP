@@ -51,7 +51,7 @@ public class PopulationPoints : MonoBehaviour {
         NearestNeighbourFinder.roadConnections(populationHotSpots, populationGeneration.mapSize, populationGeneration.seed);
         Debug.Log("Finished finding nearest neighbours");
 
-        roadGeneration(populationHotSpots, terrainPoints);
+        //roadGeneration(populationHotSpots, terrainPoints);
         Debug.Log("Finished Road generation");
 
         return;
