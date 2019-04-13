@@ -33,26 +33,25 @@ public class PopulationPoints : MonoBehaviour {
     {
         
         terrainGeneration.UpdateTerrainMap(); //TODO: Inverse mapToTerrain the other way, so that the map maps to the terrain instead
-        Debug.Log("Finished Terrain generation");
-
-
+        //Debug.Log("Finished Terrain generation");
+        
         terrainPoints = terrainGeneration.getTerrainPoints();
 
         populationGeneration.UpdatePopulationMap(terrainPoints);
-        Debug.Log("Finished Population generation");
+        //Debug.Log("Finished Population generation");
         
         popList = populationGeneration.getHighPopAreas();
         hotspotGeneration(populationGeneration.getHighPopAreas());
-        Debug.Log("Finished Hotspot generation");
+        //Debug.Log("Finished Hotspot generation");
 
-        terrainSpotGeneration(terrainPoints);
-        Debug.Log("Finished TerrainPoint generation");
+        //terrainSpotGeneration(terrainPoints);
+        //Debug.Log("Finished TerrainPoint generation");
 
         NearestNeighbourFinder.roadConnections(populationHotSpots, populationGeneration.mapSize, populationGeneration.seed);
-        Debug.Log("Finished finding nearest neighbours");
+        //Debug.Log("Finished finding nearest neighbours");
 
         //roadGeneration(populationHotSpots, terrainPoints);
-        Debug.Log("Finished Road generation");
+        //Debug.Log("Finished Road generation");
 
         return;
     }
@@ -143,7 +142,6 @@ public class PopulationPoints : MonoBehaviour {
             {
                 roadConnectionsList.Clear();
                 roadConnectionsList = aStar.roadConnections(point.transform.position, location.transform.position, terrPoints);
-
 
                 for (int i = 0; i < roadConnectionsList.Count - 1; i++)
                 {
