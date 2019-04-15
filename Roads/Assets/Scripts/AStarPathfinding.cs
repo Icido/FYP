@@ -34,16 +34,17 @@ public class AStarPathfinding {
         while(openSet.Count > 0)
         {
             var current = nextBest();
-            if(current.Equals(finish))
+
+            if (current.X == finish.X && current.Y == finish.Y)
             {
+                Debug.Log("Finished finding road from " + startPoint + " to " + finishPoint);
                 return reconstruction(current);
             }
 
-            if (openSet.Count > (terrainPoints.Length * terrainPoints.Length))
+
+            if (openSet.Count > terrainPoints.Length)
             {
                 Debug.Log("Can't find road!");
-                Debug.Break();
-                Debug.DebugBreak();
             }
 
             openSet.Remove(current);

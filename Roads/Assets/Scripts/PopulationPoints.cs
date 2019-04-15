@@ -10,7 +10,9 @@ public class PopulationPoints : MonoBehaviour {
 
     public GameObject populationHubObject;
 
-    public GameObject road;
+    public GameObject terrainObject;
+
+    public GameObject roadObject;
 
     public List<GameObject> populationHotSpots = new List<GameObject>();
 
@@ -50,7 +52,7 @@ public class PopulationPoints : MonoBehaviour {
         NearestNeighbourFinder.roadConnections(populationHotSpots, populationGeneration.mapSize, populationGeneration.seed);
         //Debug.Log("Finished finding nearest neighbours");
 
-        //roadGeneration(populationHotSpots, terrainPoints);
+        roadGeneration(populationHotSpots, terrainPoints);
         //Debug.Log("Finished Road generation");
 
         return;
@@ -110,7 +112,7 @@ public class PopulationPoints : MonoBehaviour {
         {
             for (int x = 0; x < terrainPoints.GetLength(0); x++)
             {
-                GameObject terSpot = Instantiate(populationHubObject, new Vector3(x, terrainPoints[x,y], y), Quaternion.identity, terSpots.transform);
+                GameObject terSpot = Instantiate(terrainObject, new Vector3(x, terrainPoints[x,y], y), Quaternion.identity, terSpots.transform);
                 terSpot.name = "Terrain spot " + (y * terrainPoints.GetLength(1) + x);
                 terrainSpots.Add(terSpot);
             }
@@ -152,7 +154,7 @@ public class PopulationPoints : MonoBehaviour {
                     Vector3 midPoint = new Vector3((startPosition.x + endPosition.x) / 2, (startPosition.y + endPosition.y) / 2, (startPosition.z + endPosition.z) / 2);
 
                     float distanceBetween = Vector3.Distance(startPosition, endPosition);
-                    GameObject newRoad = Instantiate(road, midPoint, Quaternion.identity, location.transform);
+                    GameObject newRoad = Instantiate(roadObject, midPoint, Quaternion.identity, location.transform);
                     newRoad.transform.LookAt(point.transform);
                     newRoad.name = "Road " + location.GetComponent<StoredNearestNeighbours>().ConnectedLocations.IndexOf(point);
                     newRoad.transform.localScale = new Vector3(newRoad.transform.localScale.x, newRoad.transform.localScale.y, distanceBetween);

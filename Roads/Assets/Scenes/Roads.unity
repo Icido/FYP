@@ -147,7 +147,9 @@ MonoBehaviour:
   terrainGeneration: {fileID: 380316153}
   populationHubObject: {fileID: 1952119202769536, guid: eae4a354377a3ec48a21e8d63195f451,
     type: 2}
-  road: {fileID: 1054941729665846, guid: 414bc206fa8c3d84882a7f712b449299, type: 2}
+  terrainObject: {fileID: 1952119202769536, guid: 688e533897bfdcd42b25f0b09bbcddaa,
+    type: 2}
+  roadObject: {fileID: 1054941729665846, guid: 414bc206fa8c3d84882a7f712b449299, type: 2}
   populationHotSpots: []
   terrainSpots: []
   popList: []
