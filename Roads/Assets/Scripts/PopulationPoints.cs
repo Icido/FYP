@@ -143,7 +143,16 @@ public class PopulationPoints : MonoBehaviour {
             foreach (GameObject point in location.GetComponent<StoredNearestNeighbours>().ConnectedLocations)
             {
                 roadConnectionsList.Clear();
+
+                //TODO: Prevent aStar.roadConnections from being called on two points already connected.
+
+                //if(point in location.GetCOmponent<StoredNearestNeighbours>().ConnectedLocations == is already connected)
+                //  continue;
+
+
                 roadConnectionsList = aStar.roadConnections(point.transform.position, location.transform.position, terrPoints);
+
+                //TODO: Prevent double-road creation. 
 
                 for (int i = 0; i < roadConnectionsList.Count - 1; i++)
                 {

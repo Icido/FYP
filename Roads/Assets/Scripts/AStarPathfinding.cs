@@ -27,9 +27,21 @@ public class AStarPathfinding {
         Point start = new Point(startPoint);
         Point finish = new Point(finishPoint);
 
+
+        //TODO: Figure out how the dictionaries affect further road creation.
+        closedSet.Clear();
+        openSet.Clear();
+        gScore.Clear();
+        fScore.Clear();
+        nodeLinks.Clear();
+
+        Debug.Log("Initial fScore from " + startPoint + " to " + finishPoint + ": " + Heuristic(start, finish));
+
         openSet[start] = true;
         gScore[start] = 0;
         fScore[start] = Heuristic(start, finish);
+
+        int counter = 0;
 
         while(openSet.Count > 0)
         {
@@ -37,14 +49,15 @@ public class AStarPathfinding {
 
             if (current.X == finish.X && current.Y == finish.Y)
             {
-                Debug.Log("Finished finding road from " + startPoint + " to " + finishPoint);
+                Debug.Log("Finished finding road from " + startPoint + " to " + finishPoint + " in " + counter + " steps");
                 return reconstruction(current);
             }
 
+            counter++;
 
             if (openSet.Count > terrainPoints.Length)
             {
-                Debug.Log("Can't find road!");
+                //Debug.Log("Can't find road!");
             }
 
             openSet.Remove(current);
