@@ -82,7 +82,7 @@ public class AStarPathfinding {
 
                 nodeLinks[neighbour] = current;
                 gScore[neighbour] = projectedG;
-                fScore[neighbour] = projectedG + Heuristic(neighbour, finish);// + Mathf.Abs(terrainPoints[neighbour.X, neighbour.Y] - terrainPoints[current.X, current.Y]);
+                fScore[neighbour] = projectedG + Heuristic(neighbour, finish) + Mathf.Abs(terrainPoints[neighbour.X, neighbour.Y] - terrainPoints[current.X, current.Y]);
             }
         }
 
@@ -233,13 +233,13 @@ public class AStarPathfinding {
         if (point.Y < 0 || point.Y >= terrainPoints.Length)
             return false;
 
-        //float dYHeight = Mathf.Abs(point.height - centralPoint.height);
-        //float dXLength = Vector2Int.Distance(new Vector2Int(point.X, point.Y), new Vector2Int(centralPoint.X, centralPoint.Y));
-        //float angleBetween = Mathf.Atan(dYHeight / dXLength) * Mathf.Rad2Deg;
+        float dYHeight = Mathf.Abs(point.height - centralPoint.height);
+        float dXLength = Vector2Int.Distance(new Vector2Int(point.X, point.Y), new Vector2Int(centralPoint.X, centralPoint.Y));
+        float angleBetween = Mathf.Atan(dYHeight / dXLength) * Mathf.Rad2Deg;
 
-        ////Checks if the angle is too step between this point and the central point
-        //if (angleBetween > maxAngle)
-        //    return false;
+        //Checks if the angle is too step between this point and the central point
+        if (angleBetween > maxAngle)
+            return false;
 
 
         return true;
