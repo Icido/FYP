@@ -17,15 +17,30 @@ public class AStarPathfinding {
 
     List<Point> neighbours = new List<Point>();
 
-    private float maxAngle = 45f;
+    private int maxNumChecks = 50;
+    private int currentNumChecks = 0;
 
+    private float currentMaxAngle;
+    private float maxAngle = 45f; // Should have a max angle of ~15f-20f degrees of steepness, 45f is for testing purposes only!
+                                  // The steepest streets in England range from 21.81 degrees (Vale Street, Bristol) to 16.09 degrees (Gold Hill, Shaftesbury, Dorset)
+                                  // https://www.bbc.co.uk/news/uk-england-38568893, https://ichef.bbci.co.uk/news/624/cpsprodpb/0BC6/production/_95241030_englands-steepest-streets-6-2.png
 
+    //What causes the hang-time is that the A* algorithm cannot find a clear path from start to finish. Either changing the max angle or chaning the terrain amplitude solves this.
+    //There must be a better solution for the A* algorithm to find a clearer path.
+    //(Perhaps make a check if the road takes too long to incease the max angle by a small margin until it finds an appropriate path.
+
+    // if(road is taking too long && time between last check and this check is long enough)
+    //      maxAngle *= 1.15f;
+    
     public List<Vector2Int> roadConnections(Vector3 startPoint, Vector3 finishPoint, float[,] terrainPoints)
     {
         neighbours.Clear();
 
         Point start = new Point(startPoint);
         Point finish = new Point(finishPoint);
+
+        currentNumChecks = 0;
+        currentMaxAngle = maxAngle;
 
 
         //TODO: Figure out how the dictionaries affect further road creation.
@@ -45,19 +60,24 @@ public class AStarPathfinding {
 
         while(openSet.Count > 0)
         {
-            var current = nextBest();
+            Point current = nextBest();
 
-            if (current.X == finish.X && current.Y == finish.Y)
+            if (current.isSamePoint(finish))
             {
                 Debug.Log("Finished finding road from " + startPoint + " to " + finishPoint + " in " + counter + " steps");
                 return reconstruction(current);
             }
 
             counter++;
+            currentNumChecks++;
 
-            if (openSet.Count > terrainPoints.Length)
+            if (openSet.Count > terrainPoints.Length && currentNumChecks >= maxNumChecks)
             {
-                //Debug.Log("Can't find road!");
+                Debug.Log("Can't find  road from " + startPoint + " to " + finishPoint + "!");
+                Debug.Log("Increasing max road angle to attempt to open a path...");
+                currentMaxAngle *= 1.15f;
+                Debug.Log("New max road angle: " + currentMaxAngle + " degrees.");
+                currentNumChecks = 0;
             }
 
             openSet.Remove(current);
@@ -72,7 +92,7 @@ public class AStarPathfinding {
                 if (closedSet.ContainsKey(neighbour))
                     continue;
 
-                var projectedG = getGScore(current) + 1;
+                int projectedG = getGScore(current) + 1;
 
                 if (!openSet.ContainsKey(neighbour))
                     openSet[neighbour] = true;
@@ -82,7 +102,7 @@ public class AStarPathfinding {
 
                 nodeLinks[neighbour] = current;
                 gScore[neighbour] = projectedG;
-                fScore[neighbour] = projectedG + Heuristic(neighbour, finish) + Mathf.Abs(terrainPoints[neighbour.X, neighbour.Y] - terrainPoints[current.X, current.Y]);
+                fScore[neighbour] = projectedG + Heuristic(neighbour, finish);// + Mathf.Abs(terrainPoints[neighbour.X, neighbour.Y] - terrainPoints[current.X, current.Y]);
             }
         }
 
@@ -91,9 +111,9 @@ public class AStarPathfinding {
 
     private int Heuristic(Point start, Point finish)
     {
-        var dx = finish.X - start.X;
-        var dy = finish.Y - start.Y;
-        //var dHeight = finish.height - start.height;
+        int dx = finish.X - start.X;
+        int dy = finish.Y - start.Y;
+        //float dHeight = finish.height - start.height;
         return Mathf.Abs(dx) + Mathf.Abs(dy);// + Mathf.Abs(dHeight);
     }
 
@@ -190,41 +210,6 @@ public class AStarPathfinding {
         return newNeighbours;
     }
 
-    private List<Point> get4Neighbours(float[,] terrainPoints, Point center)
-    {
-        List<Point> newNeighbours = new List<Point>();
-
-        //Bottom
-        Point pt = new Point(center.X, center.Y - 1, terrainPoints[center.X, center.Y - 1]);
-        if (isValidNeighbour(terrainPoints, pt, center))
-            newNeighbours.Add(pt);
-
-        //Left
-        pt = new Point(center.X - 1, center.Y, terrainPoints[center.X - 1, center.Y]);
-        if (isValidNeighbour(terrainPoints, pt, center))
-            newNeighbours.Add(pt);
-
-        //Right
-        pt = new Point(center.X + 1, center.Y, terrainPoints[center.X + 1, center.Y]);
-        if (isValidNeighbour(terrainPoints, pt, center))
-            newNeighbours.Add(pt);
-
-        //Top
-        pt = new Point(center.X, center.Y + 1, terrainPoints[center.X, center.Y + 1]);
-        if (isValidNeighbour(terrainPoints, pt, center))
-            newNeighbours.Add(pt);
-
-        if (newNeighbours.Count <= 1)
-        {
-            Debug.LogError("Not enough neighbours! Could not find suitable neighbour, causing deadlock and no path to be produced.");
-            Debug.Break();
-            Debug.DebugBreak();
-        }
-
-        return newNeighbours;
-    }
-
-
     private bool isValidNeighbour(float[,] terrainPoints, Point point, Point centralPoint)
     {
         if (point.X < 0 || point.X >= terrainPoints.Length)
@@ -238,7 +223,7 @@ public class AStarPathfinding {
         float angleBetween = Mathf.Atan(dYHeight / dXLength) * Mathf.Rad2Deg;
 
         //Checks if the angle is too step between this point and the central point
-        if (angleBetween > maxAngle)
+        if (angleBetween >= currentMaxAngle)
             return false;
 
 
@@ -258,4 +243,16 @@ public class Point
     public Point(Vector3 v3) { X = (int)v3.x; Y = (int)v3.z; height = v3.y; }
     public Point(Vector2 v2, float h) { X = (int)v2.x; Y = (int)v2.y; height = h; }
     public Point(Vector2Int v2, float h) { X = v2.x; Y = v2.y; height = h; }
+
+    public bool isSamePoint(Point point)
+    {
+        if (X != point.X)
+            return false;
+
+        if (Y != point.Y)
+            return false;
+
+        return true;
+    }
 }
+
