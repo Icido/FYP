@@ -27,10 +27,6 @@ public class AStarPathfinding {
 
     //What causes the hang-time is that the A* algorithm cannot find a clear path from start to finish. Either changing the max angle or chaning the terrain amplitude solves this.
     //There must be a better solution for the A* algorithm to find a clearer path.
-    //(Perhaps make a check if the road takes too long to incease the max angle by a small margin until it finds an appropriate path.
-
-    // if(road is taking too long && time between last check and this check is long enough)
-    //      maxAngle *= 1.15f;
     
     public List<Vector2Int> roadConnections(Vector3 startPoint, Vector3 finishPoint, float[,] terrainPoints)
     {
@@ -69,16 +65,17 @@ public class AStarPathfinding {
             }
 
             counter++;
-            currentNumChecks++;
 
-            if (openSet.Count > terrainPoints.Length && currentNumChecks >= maxNumChecks)
-            {
-                Debug.Log("Can't find  road from " + startPoint + " to " + finishPoint + "!");
-                Debug.Log("Increasing max road angle to attempt to open a path...");
-                currentMaxAngle *= 1.15f;
-                Debug.Log("New max road angle: " + currentMaxAngle + " degrees.");
-                currentNumChecks = 0;
-            }
+            //currentNumChecks++;
+
+            //if (openSet.Count > terrainPoints.Length && currentNumChecks >= maxNumChecks)
+            //{
+            //    Debug.Log("Can't find  road from " + startPoint + " to " + finishPoint + "!");
+            //    Debug.Log("Increasing max road angle to attempt to open a path...");
+            //    currentMaxAngle *= 1.15f;
+            //    Debug.Log("New max road angle: " + currentMaxAngle + " degrees.");
+            //    currentNumChecks = 0;
+            //}
 
             openSet.Remove(current);
             closedSet[current] = true;
@@ -223,8 +220,8 @@ public class AStarPathfinding {
         float angleBetween = Mathf.Atan(dYHeight / dXLength) * Mathf.Rad2Deg;
 
         //Checks if the angle is too step between this point and the central point
-        if (angleBetween >= currentMaxAngle)
-            return false;
+        //if (angleBetween >= currentMaxAngle)
+        //    return false;
 
 
         return true;

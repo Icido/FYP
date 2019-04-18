@@ -15,7 +15,7 @@ public static class NearestNeighbourFinder {
 
             location.GetComponent<StoredNearestNeighbours>().maxNumberOfConnections = Random.Range(0, 3) + Random.Range(0, 2) + 1;
 
-            location.GetComponent<StoredNearestNeighbours>().ConnectedLocations.Clear();
+            location.GetComponent<StoredNearestNeighbours>().Neighbours.Clear();
         }
 
         foreach (GameObject location in locations)
@@ -40,7 +40,7 @@ public static class NearestNeighbourFinder {
             //Check against all other locations
             foreach (GameObject otherLocation in locations)
             {
-                if (otherLocation == location || location.GetComponent<StoredNearestNeighbours>().ConnectedLocations.Contains(otherLocation))
+                if (otherLocation == location || location.GetComponent<StoredNearestNeighbours>().Neighbours.ContainsKey(otherLocation))
                     continue;
 
                 if (otherLocation.GetComponent<StoredNearestNeighbours>().currentNumberOfConnections == otherLocation.GetComponent<StoredNearestNeighbours>().maxNumberOfConnections)
@@ -92,7 +92,7 @@ public static class NearestNeighbourFinder {
 
             }
 
-            //Catches if 
+            //Catches if there are no available connections
             if (savedLoc1index == -1)
             {
                 //Debug.Log("No available connections for " + location.name);
@@ -103,70 +103,61 @@ public static class NearestNeighbourFinder {
             if (numRemainingConnections == 1 || (savedLoc2index == -1 && savedLoc3index == -1 && savedLoc4index == -1))
             {
                 locations[savedLoc1index].GetComponent<StoredNearestNeighbours>().currentNumberOfConnections += 1;
-                locations[savedLoc1index].GetComponent<StoredNearestNeighbours>().ConnectedLocations.Add(location);
+                locations[savedLoc1index].GetComponent<StoredNearestNeighbours>().Neighbours.Add(location, false);
+                location.GetComponent<StoredNearestNeighbours>().Neighbours.Add(locations[savedLoc1index], false);
 
-                location.GetComponent<StoredNearestNeighbours>().ConnectedLocations.Add(locations[savedLoc1index]);
                 location.GetComponent<StoredNearestNeighbours>().currentNumberOfConnections += 1;
+
             }
             else if(numRemainingConnections == 2 || (savedLoc3index == -1 && savedLoc4index == -1))
             {
                 locations[savedLoc1index].GetComponent<StoredNearestNeighbours>().currentNumberOfConnections += 1;
-                locations[savedLoc1index].GetComponent<StoredNearestNeighbours>().ConnectedLocations.Add(location);
-                location.GetComponent<StoredNearestNeighbours>().ConnectedLocations.Add(locations[savedLoc1index]);
+                locations[savedLoc1index].GetComponent<StoredNearestNeighbours>().Neighbours.Add(location, false);
+                location.GetComponent<StoredNearestNeighbours>().Neighbours.Add(locations[savedLoc1index], false);
 
                 locations[savedLoc2index].GetComponent<StoredNearestNeighbours>().currentNumberOfConnections += 1;
-                locations[savedLoc2index].GetComponent<StoredNearestNeighbours>().ConnectedLocations.Add(location);
-                location.GetComponent<StoredNearestNeighbours>().ConnectedLocations.Add(locations[savedLoc2index]);
+                locations[savedLoc2index].GetComponent<StoredNearestNeighbours>().Neighbours.Add(location, false);
+                location.GetComponent<StoredNearestNeighbours>().Neighbours.Add(locations[savedLoc2index], false);
 
                 location.GetComponent<StoredNearestNeighbours>().currentNumberOfConnections += 2;
             }
             else if(numRemainingConnections == 3 || (savedLoc4index == -1))
             {
                 locations[savedLoc1index].GetComponent<StoredNearestNeighbours>().currentNumberOfConnections += 1;
-                locations[savedLoc1index].GetComponent<StoredNearestNeighbours>().ConnectedLocations.Add(location);
-                location.GetComponent<StoredNearestNeighbours>().ConnectedLocations.Add(locations[savedLoc1index]);
+                locations[savedLoc1index].GetComponent<StoredNearestNeighbours>().Neighbours.Add(location, false);
+                location.GetComponent<StoredNearestNeighbours>().Neighbours.Add(locations[savedLoc1index], false);
 
                 locations[savedLoc2index].GetComponent<StoredNearestNeighbours>().currentNumberOfConnections += 1;
-                locations[savedLoc2index].GetComponent<StoredNearestNeighbours>().ConnectedLocations.Add(location);
-                location.GetComponent<StoredNearestNeighbours>().ConnectedLocations.Add(locations[savedLoc2index]);
+                locations[savedLoc2index].GetComponent<StoredNearestNeighbours>().Neighbours.Add(location, false);
+                location.GetComponent<StoredNearestNeighbours>().Neighbours.Add(locations[savedLoc2index], false);
 
                 locations[savedLoc3index].GetComponent<StoredNearestNeighbours>().currentNumberOfConnections += 1;
-                locations[savedLoc3index].GetComponent<StoredNearestNeighbours>().ConnectedLocations.Add(location);
-                location.GetComponent<StoredNearestNeighbours>().ConnectedLocations.Add(locations[savedLoc3index]);
+                locations[savedLoc3index].GetComponent<StoredNearestNeighbours>().Neighbours.Add(location, false);
+                location.GetComponent<StoredNearestNeighbours>().Neighbours.Add(locations[savedLoc3index], false);
 
                 location.GetComponent<StoredNearestNeighbours>().currentNumberOfConnections += 3;
             }
             else
             {
                 locations[savedLoc1index].GetComponent<StoredNearestNeighbours>().currentNumberOfConnections += 1;
-                locations[savedLoc1index].GetComponent<StoredNearestNeighbours>().ConnectedLocations.Add(location);
-                location.GetComponent<StoredNearestNeighbours>().ConnectedLocations.Add(locations[savedLoc1index]);
+                locations[savedLoc1index].GetComponent<StoredNearestNeighbours>().Neighbours.Add(location, false);
+                location.GetComponent<StoredNearestNeighbours>().Neighbours.Add(locations[savedLoc1index], false);
 
                 locations[savedLoc2index].GetComponent<StoredNearestNeighbours>().currentNumberOfConnections += 1;
-                locations[savedLoc2index].GetComponent<StoredNearestNeighbours>().ConnectedLocations.Add(location);
-                location.GetComponent<StoredNearestNeighbours>().ConnectedLocations.Add(locations[savedLoc2index]);
+                locations[savedLoc2index].GetComponent<StoredNearestNeighbours>().Neighbours.Add(location, false);
+                location.GetComponent<StoredNearestNeighbours>().Neighbours.Add(locations[savedLoc2index], false);
 
                 locations[savedLoc3index].GetComponent<StoredNearestNeighbours>().currentNumberOfConnections += 1;
-                locations[savedLoc3index].GetComponent<StoredNearestNeighbours>().ConnectedLocations.Add(location);
-                location.GetComponent<StoredNearestNeighbours>().ConnectedLocations.Add(locations[savedLoc3index]);
+                locations[savedLoc3index].GetComponent<StoredNearestNeighbours>().Neighbours.Add(location, false);
+                location.GetComponent<StoredNearestNeighbours>().Neighbours.Add(locations[savedLoc3index], false);
 
                 locations[savedLoc4index].GetComponent<StoredNearestNeighbours>().currentNumberOfConnections += 1;
-                locations[savedLoc4index].GetComponent<StoredNearestNeighbours>().ConnectedLocations.Add(location);
-                location.GetComponent<StoredNearestNeighbours>().ConnectedLocations.Add(locations[savedLoc4index]);
+                locations[savedLoc4index].GetComponent<StoredNearestNeighbours>().Neighbours.Add(location, false);
+                location.GetComponent<StoredNearestNeighbours>().Neighbours.Add(locations[savedLoc4index], false);
 
                 location.GetComponent<StoredNearestNeighbours>().currentNumberOfConnections += 4;
             }
         }
-
-
-
-        //foreach (GameObject location in locations)
-        //{
-        //    if (location.GetComponent<StoredNearestNeighbours>().maxNumberOfConnections - location.GetComponent<StoredNearestNeighbours>().currentNumberOfConnections > 0)
-        //        Debug.Log("Empty slots available at location: " + location.name + ", number of slots: " + (location.GetComponent<StoredNearestNeighbours>().maxNumberOfConnections - location.GetComponent<StoredNearestNeighbours>().currentNumberOfConnections));
-        //}
-
-
     }
 
     static int findHighestDist(float dist1, float dist2, float dist3, float dist4)

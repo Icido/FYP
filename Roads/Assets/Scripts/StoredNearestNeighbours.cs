@@ -7,7 +7,5 @@ public class StoredNearestNeighbours : MonoBehaviour {
     public int currentNumberOfConnections;
     public int maxNumberOfConnections;
 
-
-    public List<GameObject> ConnectedLocations = new List<GameObject>();
-
+    public Dictionary<GameObject, bool> Neighbours = new Dictionary<GameObject, bool>();
 }
