@@ -8,7 +8,7 @@ public class AStarPathfinding {
     Dictionary<Point, bool> openSet = new Dictionary<Point, bool>();
 
     //Cost of start to THIS point
-    Dictionary<Point, int> gScore = new Dictionary<Point, int>();
+    Dictionary<Point, float> gScore = new Dictionary<Point, float>();
 
     //Cost of start to goal through THIS point
     Dictionary<Point, float> fScore = new Dictionary<Point, float>();
@@ -25,9 +25,12 @@ public class AStarPathfinding {
                                   // The steepest streets in England range from 21.81 degrees (Vale Street, Bristol) to 16.09 degrees (Gold Hill, Shaftesbury, Dorset)
                                   // https://www.bbc.co.uk/news/uk-england-38568893, https://ichef.bbci.co.uk/news/624/cpsprodpb/0BC6/production/_95241030_englands-steepest-streets-6-2.png
 
+    private float diagonalCost = Mathf.Sqrt(2);
+    private float normalCost = 1f;
+
     //What causes the hang-time is that the A* algorithm cannot find a clear path from start to finish. Either changing the max angle or chaning the terrain amplitude solves this.
     //There must be a better solution for the A* algorithm to find a clearer path.
-    
+
     public List<Vector2Int> roadConnections(Vector3 startPoint, Vector3 finishPoint, float[,] terrainPoints)
     {
         neighbours.Clear();
@@ -38,7 +41,6 @@ public class AStarPathfinding {
         currentNumChecks = 0;
         currentMaxAngle = maxAngle;
 
-
         //TODO: Figure out how the dictionaries affect further road creation.
         closedSet.Clear();
         openSet.Clear();
@@ -46,11 +48,11 @@ public class AStarPathfinding {
         fScore.Clear();
         nodeLinks.Clear();
 
-        Debug.Log("Initial fScore from " + startPoint + " to " + finishPoint + ": " + Heuristic(start, finish));
+        Debug.Log("Initial fScore from " + startPoint + " to " + finishPoint + ": " + EuclideanHeuristic(start, finish));
 
         openSet[start] = true;
         gScore[start] = 0;
-        fScore[start] = Heuristic(start, finish);
+        fScore[start] = EuclideanHeuristic(start, finish);
 
         int counter = 0;
 
@@ -89,7 +91,12 @@ public class AStarPathfinding {
                 if (closedSet.ContainsKey(neighbour))
                     continue;
 
-                int projectedG = getGScore(current) + 1;
+                float projectedG;
+
+                if(neighbour.isDiagonal == true)
+                    projectedG = Mathf.Pow(getGScore(current) + diagonalCost + (getAngleBetween(current, neighbour) / 45f), 2);
+                else
+                    projectedG = Mathf.Pow(getGScore(current) + normalCost + (getAngleBetween(current, neighbour) / 45f), 2);
 
                 if (!openSet.ContainsKey(neighbour))
                     openSet[neighbour] = true;
@@ -99,19 +106,20 @@ public class AStarPathfinding {
 
                 nodeLinks[neighbour] = current;
                 gScore[neighbour] = projectedG;
-                fScore[neighbour] = projectedG + Heuristic(neighbour, finish);// + Mathf.Abs(terrainPoints[neighbour.X, neighbour.Y] - terrainPoints[current.X, current.Y]);
+                fScore[neighbour] = projectedG + EuclideanHeuristic(neighbour, finish);
             }
         }
 
         return new List<Vector2Int>();
     }
 
-    private int Heuristic(Point start, Point finish)
+    private float EuclideanHeuristic(Point start, Point finish)
     {
-        int dx = finish.X - start.X;
-        int dy = finish.Y - start.Y;
-        //float dHeight = finish.height - start.height;
-        return Mathf.Abs(dx) + Mathf.Abs(dy);// + Mathf.Abs(dHeight);
+        float dx = Mathf.Pow(finish.X - start.X, 2);
+        float dy = Mathf.Pow(finish.Y - start.Y, 2);
+        float dHeight = Mathf.Pow(finish.height - start.height, 2);
+        return dx + dy + dHeight;
+
     }
 
     private Point nextBest()
@@ -138,9 +146,9 @@ public class AStarPathfinding {
         return score;
     }
 
-    private int getGScore(Point node)
+    private float getGScore(Point node)
     {
-        int score = int.MaxValue;
+        float score = float.MaxValue;
         gScore.TryGetValue(node, out score);
         return score;
     }
@@ -163,7 +171,7 @@ public class AStarPathfinding {
         List<Point> newNeighbours = new List<Point>();
 
         //Bottom row
-        Point pt = new Point(center.X - 1, center.Y - 1, terrainPoints[center.X - 1, center.Y - 1]);
+        Point pt = new Point(center.X - 1, center.Y - 1, terrainPoints[center.X - 1, center.Y - 1], true);
         if (isValidNeighbour(terrainPoints, pt, center))
             newNeighbours.Add(pt);
 
@@ -171,7 +179,7 @@ public class AStarPathfinding {
         if (isValidNeighbour(terrainPoints, pt, center))
             newNeighbours.Add(pt);
 
-        pt = new Point(center.X + 1, center.Y - 1, terrainPoints[center.X + 1, center.Y - 1]);
+        pt = new Point(center.X + 1, center.Y - 1, terrainPoints[center.X + 1, center.Y - 1], true);
         if (isValidNeighbour(terrainPoints, pt, center))
             newNeighbours.Add(pt);
 
@@ -185,7 +193,7 @@ public class AStarPathfinding {
             newNeighbours.Add(pt);
 
         //Top row
-        pt = new Point(center.X - 1, center.Y + 1, terrainPoints[center.X - 1, center.Y + 1]);
+        pt = new Point(center.X - 1, center.Y + 1, terrainPoints[center.X - 1, center.Y + 1], true);
         if (isValidNeighbour(terrainPoints, pt, center))
             newNeighbours.Add(pt);
 
@@ -193,7 +201,7 @@ public class AStarPathfinding {
         if (isValidNeighbour(terrainPoints, pt, center))
             newNeighbours.Add(pt);
 
-        pt = new Point(center.X + 1, center.Y + 1, terrainPoints[center.X + 1, center.Y + 1]);
+        pt = new Point(center.X + 1, center.Y + 1, terrainPoints[center.X + 1, center.Y + 1], true);
         if (isValidNeighbour(terrainPoints, pt, center))
             newNeighbours.Add(pt);
 
@@ -215,16 +223,23 @@ public class AStarPathfinding {
         if (point.Y < 0 || point.Y >= terrainPoints.Length)
             return false;
 
-        float dYHeight = Mathf.Abs(point.height - centralPoint.height);
-        float dXLength = Vector2Int.Distance(new Vector2Int(point.X, point.Y), new Vector2Int(centralPoint.X, centralPoint.Y));
-        float angleBetween = Mathf.Atan(dYHeight / dXLength) * Mathf.Rad2Deg;
+        float angleBetween = getAngleBetween(centralPoint, point);
 
         //Checks if the angle is too step between this point and the central point
-        //if (angleBetween >= currentMaxAngle)
-        //    return false;
+        if (angleBetween >= currentMaxAngle)
+            return false;
 
 
         return true;
+    }
+
+    private float getAngleBetween(Point current, Point neighbour)
+    {
+        float dYHeight = Mathf.Abs(neighbour.height - current.height);
+        float dXLength = Vector2.Distance(new Vector2(neighbour.X, neighbour.Y), new Vector2(current.X, current.Y));
+        float angleBetween = Mathf.Atan(dYHeight / dXLength) * Mathf.Rad2Deg;
+
+        return angleBetween;
     }
 
 }
@@ -236,10 +251,17 @@ public class Point
 
     public float height;
 
+    public bool isDiagonal = false;
+
     public Point(int x, int y, float h) { X = x; Y = y; height = h; }
     public Point(Vector3 v3) { X = (int)v3.x; Y = (int)v3.z; height = v3.y; }
     public Point(Vector2 v2, float h) { X = (int)v2.x; Y = (int)v2.y; height = h; }
     public Point(Vector2Int v2, float h) { X = v2.x; Y = v2.y; height = h; }
+
+    public Point(int x, int y, float h, bool diagonal) { X = x; Y = y; height = h; isDiagonal = diagonal; }
+    public Point(Vector3 v3, bool diagonal) { X = (int)v3.x; Y = (int)v3.z; height = v3.y; isDiagonal = diagonal; }
+    public Point(Vector2 v2, float h, bool diagonal) { X = (int)v2.x; Y = (int)v2.y; height = h; isDiagonal = diagonal; }
+    public Point(Vector2Int v2, float h, bool diagonal) { X = v2.x; Y = v2.y; height = h; isDiagonal = diagonal; }
 
     public bool isSamePoint(Point point)
     {

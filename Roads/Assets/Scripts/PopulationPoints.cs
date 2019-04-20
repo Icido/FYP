@@ -14,11 +14,11 @@ public class PopulationPoints : MonoBehaviour {
 
     public GameObject roadObject;
 
-    public List<GameObject> populationHotSpots = new List<GameObject>();
+    private List<GameObject> populationHotSpots = new List<GameObject>();
 
-    public List<GameObject> terrainSpots = new List<GameObject>();
+    private List<GameObject> terrainSpots = new List<GameObject>();
 
-    public List<Vector3> popList = new List<Vector3>();
+    private List<Vector3> popList = new List<Vector3>();
 
     private List<Vector2Int> roadConnectionsList = new List<Vector2Int>();
 
@@ -151,6 +151,8 @@ public class PopulationPoints : MonoBehaviour {
                     point.GetComponent<StoredNearestNeighbours>().Neighbours[location] == true)
                     continue;
 
+                //StartCoroutine(aStarConnections(point, location, terrPoints));
+
                 roadConnectionsList = aStar.roadConnections(point.transform.position, location.transform.position, terrPoints);
                 roadConnectionsList.Insert(0, new Vector2Int((int)point.transform.position.x, (int)point.transform.position.z)); ;
                 Debug.Log("Road from " + point.transform.position + " to " + location.transform.position + " has " + roadConnectionsList.Count + " connection points between");
@@ -168,8 +170,8 @@ public class PopulationPoints : MonoBehaviour {
                     newRoad.transform.LookAt(endPosition);
                     newRoad.name = "Road " + (i + 1);
                     newRoad.transform.localScale = new Vector3(newRoad.transform.localScale.x, newRoad.transform.localScale.y, distanceBetween);
-                    //Add to storage in StoredNearestNeighbours?
                 }
+
 
                 location.GetComponent<StoredNearestNeighbours>().Neighbours[point] = true;
                 locations.Find(o => o == point).GetComponent<StoredNearestNeighbours>().Neighbours[location] = true;
@@ -177,6 +179,13 @@ public class PopulationPoints : MonoBehaviour {
         }
 
         return;
+    }
+
+    IEnumerator aStarConnections(GameObject point, GameObject location, float[,] terrPoints)
+    {
+
+        yield return null;
+
     }
 
 
