@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AStarPathfinding {
+public class AStarPathfinding
+{
 
     Dictionary<Point, bool> closedSet = new Dictionary<Point, bool>();
     Dictionary<Point, bool> openSet = new Dictionary<Point, bool>();
@@ -14,6 +15,8 @@ public class AStarPathfinding {
     Dictionary<Point, float> fScore = new Dictionary<Point, float>();
 
     Dictionary<Point, Point> nodeLinks = new Dictionary<Point, Point>();
+
+    public List<Vector2Int> connections = new List<Vector2Int>();
 
     List<Point> neighbours = new List<Point>();
 
@@ -56,7 +59,7 @@ public class AStarPathfinding {
 
         int counter = 0;
 
-        while(openSet.Count > 0)
+        while (openSet.Count > 0)
         {
             Point current = nextBest();
 
@@ -67,6 +70,8 @@ public class AStarPathfinding {
             }
 
             counter++;
+
+
 
             //currentNumChecks++;
 
@@ -84,22 +89,37 @@ public class AStarPathfinding {
 
             neighbours.Clear();
             neighbours = get8Neighbours(terrainPoints, current);
-            
 
-            foreach(var neighbour in neighbours)
+
+            foreach (var neighbour in neighbours)
             {
                 if (closedSet.ContainsKey(neighbour))
                     continue;
 
                 float projectedG;
 
-                if(neighbour.isDiagonal == true)
-                    projectedG = Mathf.Pow(getGScore(current) + diagonalCost + (getAngleBetween(current, neighbour) / 45f), 2);
+                //if (neighbour.isDiagonal == true)
+                //    projectedG = Mathf.Pow(getGScore(current) + diagonalCost + (getAngleBetween(current, neighbour) / 45f), 2);
+                //else
+                //    projectedG = Mathf.Pow(getGScore(current) + normalCost + (getAngleBetween(current, neighbour) / 45f), 2);
+
+                if (neighbour.isDiagonal == true)
+                    projectedG = Mathf.Pow(getGScore(current) + diagonalCost, 2);
                 else
-                    projectedG = Mathf.Pow(getGScore(current) + normalCost + (getAngleBetween(current, neighbour) / 45f), 2);
+                    projectedG = Mathf.Pow(getGScore(current) + normalCost, 2);
+
+                //if (neighbour.isDiagonal == true)
+                //    projectedG = getGScore(current) + diagonalCost;
+                //else
+                //    projectedG = getGScore(current) + normalCost;
+
+                //Set so all openSet copies are false, rather than having a diagonal and not diagonal copy
+                neighbour.isDiagonal = false;
 
                 if (!openSet.ContainsKey(neighbour))
+                {
                     openSet[neighbour] = true;
+                }
                 else if (projectedG >= getGScore(neighbour))
                     continue;
 
@@ -113,12 +133,113 @@ public class AStarPathfinding {
         return new List<Vector2Int>();
     }
 
+    IEnumerator roads(Vector3 startPoint, Vector3 finishPoint, float[,] terrainPoints)
+    {
+        neighbours.Clear();
+
+        Point start = new Point(startPoint);
+        Point finish = new Point(finishPoint);
+
+        currentNumChecks = 0;
+        currentMaxAngle = maxAngle;
+
+        //TODO: Figure out how the dictionaries affect further road creation.
+        closedSet.Clear();
+        openSet.Clear();
+        gScore.Clear();
+        fScore.Clear();
+        nodeLinks.Clear();
+
+        Debug.Log("Initial fScore from " + startPoint + " to " + finishPoint + ": " + EuclideanHeuristic(start, finish));
+
+        openSet[start] = true;
+        gScore[start] = 0;
+        fScore[start] = EuclideanHeuristic(start, finish);
+
+        int counter = 0;
+
+        while (openSet.Count > 0)
+        {
+            Point current = nextBest();
+
+            if (current.isSamePoint(finish))
+            {
+                Debug.Log("Finished finding road from " + startPoint + " to " + finishPoint + " in " + counter + " steps");
+                connections = reconstruction(current);
+                break;
+            }
+
+            yield return null;
+
+            counter++;
+
+
+
+            //currentNumChecks++;
+
+            //if (openSet.Count > terrainPoints.Length && currentNumChecks >= maxNumChecks)
+            //{
+            //    Debug.Log("Can't find  road from " + startPoint + " to " + finishPoint + "!");
+            //    Debug.Log("Increasing max road angle to attempt to open a path...");
+            //    currentMaxAngle *= 1.15f;
+            //    Debug.Log("New max road angle: " + currentMaxAngle + " degrees.");
+            //    currentNumChecks = 0;
+            //}
+
+            openSet.Remove(current);
+            closedSet[current] = true;
+
+            neighbours.Clear();
+            neighbours = get8Neighbours(terrainPoints, current);
+
+
+            foreach (var neighbour in neighbours)
+            {
+                if (closedSet.ContainsKey(neighbour))
+                    continue;
+
+                float projectedG;
+
+                //if (neighbour.isDiagonal == true)
+                //    projectedG = Mathf.Pow(getGScore(current) + diagonalCost + (getAngleBetween(current, neighbour) / 45f), 2);
+                //else
+                //    projectedG = Mathf.Pow(getGScore(current) + normalCost + (getAngleBetween(current, neighbour) / 45f), 2);
+
+                if (neighbour.isDiagonal == true)
+                    projectedG = Mathf.Pow(getGScore(current) + diagonalCost, 2);
+                else
+                    projectedG = Mathf.Pow(getGScore(current) + normalCost, 2);
+
+                //if (neighbour.isDiagonal == true)
+                //    projectedG = getGScore(current) + diagonalCost;
+                //else
+                //    projectedG = getGScore(current) + normalCost;
+
+                //Set so all openSet copies are false, rather than having a diagonal and not diagonal copy
+                neighbour.isDiagonal = false;
+
+                if (!openSet.ContainsKey(neighbour))
+                {
+                    openSet[neighbour] = true;
+                }
+                else if (projectedG >= getGScore(neighbour))
+                    continue;
+
+
+                nodeLinks[neighbour] = current;
+                gScore[neighbour] = projectedG;
+                fScore[neighbour] = projectedG + EuclideanHeuristic(neighbour, finish);
+            }
+        }
+    }
+
     private float EuclideanHeuristic(Point start, Point finish)
     {
         float dx = Mathf.Pow(finish.X - start.X, 2);
         float dy = Mathf.Pow(finish.Y - start.Y, 2);
-        float dHeight = Mathf.Pow(finish.height - start.height, 2);
-        return dx + dy + dHeight;
+        //float dHeight = Mathf.Pow(finish.height - start.height, 2);
+        return Mathf.Sqrt(dx + dy);
+        //return dx + dy + dHeight;
 
     }
 
@@ -126,10 +247,10 @@ public class AStarPathfinding {
     {
         float best = float.MaxValue;
         Point bestPoint = null;
-        foreach(var node in openSet.Keys)
+        foreach (var node in openSet.Keys)
         {
             var score = getFScore(node);
-            if(score < best)
+            if (score < best)
             {
                 bestPoint = node;
                 best = score;
@@ -156,7 +277,7 @@ public class AStarPathfinding {
     private List<Vector2Int> reconstruction(Point current)
     {
         List<Vector2Int> path = new List<Vector2Int>();
-        while(nodeLinks.ContainsKey(current))
+        while (nodeLinks.ContainsKey(current))
         {
             path.Add(new Vector2Int(current.X, current.Y));
             current = nodeLinks[current];
@@ -209,7 +330,6 @@ public class AStarPathfinding {
         {
             Debug.LogError("Not enough neighbours! Could not find suitable neighbour, causing deadlock and no path to be produced.");
             Debug.Break();
-            Debug.DebugBreak();
         }
 
         return newNeighbours;
@@ -226,8 +346,8 @@ public class AStarPathfinding {
         float angleBetween = getAngleBetween(centralPoint, point);
 
         //Checks if the angle is too step between this point and the central point
-        if (angleBetween >= currentMaxAngle)
-            return false;
+        //if (angleBetween >= currentMaxAngle)
+        //    return false;
 
 
         return true;

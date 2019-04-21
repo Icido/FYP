@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PopulationPoints : MonoBehaviour {
+public class PopulationPoints : MonoBehaviour
+{
 
     public PopulationCalculator populationGeneration;
 
@@ -30,21 +31,75 @@ public class PopulationPoints : MonoBehaviour {
 
     private AStarPathfinding aStar = new AStarPathfinding();
 
+    public bool isWorking = true;
+
+    public IEnumerator updatingLocations()
+    {
+        isWorking = true;
+        Debug.Log("Starting Terrain Generation...");
+        yield return terrainGen();
+        Debug.Log("Starting Population Generation...");
+        yield return popGen();
+        Debug.Log("Finding nearest neighbours...");
+        yield return neighbourGen();
+        Debug.Log("Starting Road Generation...");
+        yield return roadGen();
+        Debug.Log("Finished Generation coroutine");
+        isWorking = false;
+        yield return null;
+    }
+
+    IEnumerator terrainGen()
+    {
+        terrainGeneration.UpdateTerrainMap();
+
+        terrainPoints = terrainGeneration.getTerrainPoints();
+
+        Debug.Log("Finished Terrain generation");
+
+        yield return null;
+    }
+
+    IEnumerator popGen()
+    {
+        popList = populationGeneration.getHighPopAreas();
+
+        hotspotGeneration(populationGeneration.getHighPopAreas());
+
+        Debug.Log("Finished Population generation");
+
+        yield return null;
+    }
+
+    IEnumerator neighbourGen()
+    {
+        NearestNeighbourFinder.roadConnections(populationHotSpots, populationGeneration.mapSize, populationGeneration.seed);
+
+        Debug.Log("Finished Neighbour generation");
+
+        yield return null;
+    }
+
+    IEnumerator roadGen()
+    {
+        yield return roadGenRoutine(populationHotSpots, terrainPoints);
+
+        Debug.Log("Finished Road generation");
+
+        yield return null;
+    }
 
     public void updateLocations()
     {
-        
+
         terrainGeneration.UpdateTerrainMap(); //TODO: Inverse mapToTerrain the other way, so that the map maps to the terrain instead
-        //Debug.Log("Finished Terrain generation");
-        
+
         terrainPoints = terrainGeneration.getTerrainPoints();
 
         populationGeneration.UpdatePopulationMap(terrainPoints);
-        //Debug.Log("Finished Population generation");
-        
+
         popList = populationGeneration.getHighPopAreas();
         hotspotGeneration(populationGeneration.getHighPopAreas());
-        //Debug.Log("Finished Hotspot generation");
 
         //terrainSpotGeneration(terrainPoints);
         //Debug.Log("Finished TerrainPoint generation");
@@ -61,7 +116,7 @@ public class PopulationPoints : MonoBehaviour {
     void hotspotGeneration(List<Vector3> hotspots)
     {
 
-        if(GameObject.Find("Population Points") == null)
+        if (GameObject.Find("Population Points") == null)
         {
             popSpots = new GameObject();
             popSpots.name = "Population Points";
@@ -77,7 +132,7 @@ public class PopulationPoints : MonoBehaviour {
 
             populationHotSpots.Clear();
         }
-        
+
         foreach (Vector3 location in hotspots)
         {
             GameObject popHub = Instantiate(populationHubObject, location, Quaternion.identity, popSpots.transform);
@@ -112,7 +167,7 @@ public class PopulationPoints : MonoBehaviour {
         {
             for (int x = 0; x < terrainPoints.GetLength(0); x++)
             {
-                GameObject terSpot = Instantiate(terrainObject, new Vector3(x, terrainPoints[x,y], y), Quaternion.identity, terSpots.transform);
+                GameObject terSpot = Instantiate(terrainObject, new Vector3(x, terrainPoints[x, y], y), Quaternion.identity, terSpots.transform);
                 terSpot.name = "Terrain spot " + (y * terrainPoints.GetLength(1) + x);
                 terrainSpots.Add(terSpot);
             }
@@ -147,7 +202,7 @@ public class PopulationPoints : MonoBehaviour {
             {
                 roadConnectionsList.Clear();
 
-                if (location.GetComponent<StoredNearestNeighbours>().Neighbours[point] == true || 
+                if (location.GetComponent<StoredNearestNeighbours>().Neighbours[point] == true ||
                     point.GetComponent<StoredNearestNeighbours>().Neighbours[location] == true)
                     continue;
 
@@ -181,14 +236,75 @@ public class PopulationPoints : MonoBehaviour {
         return;
     }
 
-    IEnumerator aStarConnections(GameObject point, GameObject location, float[,] terrPoints)
+    IEnumerator roadGenRoutine(List<GameObject> locations, float[,] terrPoints)
     {
+        foreach (GameObject loc in locations)
+        {
+            int numChildren = loc.transform.childCount;
+
+            if (numChildren > 0)
+            {
+                for (int i = 0; i < numChildren; i++)
+                {
+                    Destroy(loc.transform.GetChild(i).gameObject);
+                }
+            }
+        }
+
+        foreach (GameObject location in locations)
+        {
+            //Create a temporary list of keys to iterate over to prevent iteration errors while in the foreach loop
+            List<GameObject> keys = new List<GameObject>(location.GetComponent<StoredNearestNeighbours>().Neighbours.Keys);
+
+            foreach (GameObject point in keys)
+            {
+                roadConnectionsList.Clear();
+
+                if (location.GetComponent<StoredNearestNeighbours>().Neighbours[point] == true ||
+                    point.GetComponent<StoredNearestNeighbours>().Neighbours[location] == true)
+                    continue;
+
+                //StartCoroutine(aStarConnections(point, location, terrPoints));
+                yield return aStarConnections(point.transform.position, location.transform.position, terrPoints);
+
+                //roadConnectionsList = aStar.roadConnections(point.transform.position, location.transform.position, terrPoints);
+                roadConnectionsList.Insert(0, new Vector2Int((int)point.transform.position.x, (int)point.transform.position.z)); ;
+                Debug.Log("Road from " + point.transform.position + " to " + location.transform.position + " has " + roadConnectionsList.Count + " connection points between");
+
+                for (int i = 0; i < roadConnectionsList.Count - 1; i++)
+                {
+                    Vector3 startPosition = new Vector3(roadConnectionsList[i].x, terrPoints[roadConnectionsList[i].x, roadConnectionsList[i].y], roadConnectionsList[i].y);
+
+                    Vector3 endPosition = new Vector3(roadConnectionsList[i + 1].x, terrPoints[roadConnectionsList[i + 1].x, roadConnectionsList[i + 1].y], roadConnectionsList[i + 1].y);
+
+                    Vector3 midPoint = new Vector3((startPosition.x + endPosition.x) / 2, (startPosition.y + endPosition.y) / 2, (startPosition.z + endPosition.z) / 2);
+
+                    float distanceBetween = Vector3.Distance(startPosition, endPosition);
+                    GameObject newRoad = Instantiate(roadObject, midPoint, Quaternion.identity, location.transform);
+                    newRoad.transform.LookAt(endPosition);
+                    newRoad.name = "Road " + (i + 1);
+                    newRoad.transform.localScale = new Vector3(newRoad.transform.localScale.x, newRoad.transform.localScale.y, distanceBetween);
+
+                    yield return null;
+                }
+
+
+                location.GetComponent<StoredNearestNeighbours>().Neighbours[point] = true;
+                locations.Find(o => o == point).GetComponent<StoredNearestNeighbours>().Neighbours[location] = true;
+            }
+        }
 
         yield return null;
-
     }
 
+    IEnumerator aStarConnections(Vector3 start, Vector3 finish, float[,] terrainPoints)
+    {
+        yield return aStar.roadConnections(start, finish, terrainPoints);
 
+        roadConnectionsList = aStar.connections;
+
+        yield return null;
+    }
 
     List<Vector2Int> get8AdjacentLocations(int maxTerrainEdge, Vector2Int Vector2Int, Vector2Int parentVector2Int)
     {
