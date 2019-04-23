@@ -25,11 +25,16 @@ public class AStarPathfinding {
                                   // The steepest streets in England range from 21.81 degrees (Vale Street, Bristol) to 16.09 degrees (Gold Hill, Shaftesbury, Dorset)
                                   // https://www.bbc.co.uk/news/uk-england-38568893, https://ichef.bbci.co.uk/news/624/cpsprodpb/0BC6/production/_95241030_englands-steepest-streets-6-2.png
 
-    private float diagonalCost = Mathf.Sqrt(2);
-    private float normalCost = 1f;
+    //private float diagonalCost = Mathf.Sqrt(2);
+    //private float normalCost = 1f;
+    private float stepCost = 1f;
+
 
     //What causes the hang-time is that the A* algorithm cannot find a clear path from start to finish. Either changing the max angle or chaning the terrain amplitude solves this.
     //There must be a better solution for the A* algorithm to find a clearer path.
+
+    //Paper for better and more efficient deadlock failsafes (if deadlock becomes a problem again)
+    //https://www.aaai.org/Papers/ICAPS/2008/ICAPS08-047.pdf
 
     public List<Vector2Int> roadConnections(Vector3 startPoint, Vector3 finishPoint, float[,] terrainPoints)
     {
@@ -93,10 +98,12 @@ public class AStarPathfinding {
 
                 float projectedG;
 
-                if(neighbour.isDiagonal == true)
-                    projectedG = Mathf.Pow(getGScore(current) + diagonalCost + (getAngleBetween(current, neighbour) / 45f), 2);
-                else
-                    projectedG = Mathf.Pow(getGScore(current) + normalCost + (getAngleBetween(current, neighbour) / 45f), 2);
+                projectedG = Mathf.Pow(getGScore(current) + stepCost + (getAngleBetween(current, neighbour) / 45f), 2);
+
+                //if(neighbour.isDiagonal == true)
+                //    projectedG = Mathf.Pow(getGScore(current) + diagonalCost + (getAngleBetween(current, neighbour) / 45f), 2);
+                //else
+                //    projectedG = Mathf.Pow(getGScore(current) + normalCost + (getAngleBetween(current, neighbour) / 45f), 2);
 
                 if (!openSet.ContainsKey(neighbour))
                     openSet[neighbour] = true;
@@ -113,6 +120,8 @@ public class AStarPathfinding {
         return new List<Vector2Int>();
     }
 
+    #region HelperFunctions
+
     private float EuclideanHeuristic(Point start, Point finish)
     {
         float dx = Mathf.Pow(finish.X - start.X, 2);
@@ -125,7 +134,7 @@ public class AStarPathfinding {
     private Point nextBest()
     {
         float best = float.MaxValue;
-        Point bestPoint = null;
+        Point bestPoint = new Point();
         foreach(var node in openSet.Keys)
         {
             var score = getFScore(node);
@@ -170,46 +179,74 @@ public class AStarPathfinding {
     {
         List<Point> newNeighbours = new List<Point>();
 
+        int centralX = center.X;
+        int centralY = center.Y;
+
+        Point pt = new Point(center);
+
         //Bottom row
-        Point pt = new Point(center.X - 1, center.Y - 1, terrainPoints[center.X - 1, center.Y - 1], true);
-        if (isValidNeighbour(terrainPoints, pt, center))
-            newNeighbours.Add(pt);
+        if (centralX > 0 && centralY > 0)
+        {
+            pt = new Point(centralX - 1, centralY - 1, terrainPoints[centralX - 1, centralY - 1]);
+            if (isValidNeighbour(terrainPoints, pt, center))
+                newNeighbours.Add(pt);
+        }
 
-        pt = new Point(center.X, center.Y - 1, terrainPoints[center.X, center.Y - 1]);
-        if (isValidNeighbour(terrainPoints, pt, center))
-            newNeighbours.Add(pt);
+        if (centralY > 0)
+        {
+            pt = new Point(centralX, centralY - 1, terrainPoints[centralX, centralY - 1]);
+            if (isValidNeighbour(terrainPoints, pt, center))
+                newNeighbours.Add(pt);
+        }
 
-        pt = new Point(center.X + 1, center.Y - 1, terrainPoints[center.X + 1, center.Y - 1], true);
-        if (isValidNeighbour(terrainPoints, pt, center))
-            newNeighbours.Add(pt);
+        if (centralX < terrainPoints.Length && centralY > 0)
+        {
+            pt = new Point(centralX + 1, centralY - 1, terrainPoints[centralX + 1, centralY - 1]);
+            if (isValidNeighbour(terrainPoints, pt, center))
+                newNeighbours.Add(pt);
+        }
 
         //Middle row
-        pt = new Point(center.X - 1, center.Y, terrainPoints[center.X - 1, center.Y]);
-        if (isValidNeighbour(terrainPoints, pt, center))
-            newNeighbours.Add(pt);
+        if (centralX > 0)
+        {
+            pt = new Point(centralX - 1, centralY, terrainPoints[centralX - 1, centralY]);
+            if (isValidNeighbour(terrainPoints, pt, center))
+                newNeighbours.Add(pt);
+        }
 
-        pt = new Point(center.X + 1, center.Y, terrainPoints[center.X + 1, center.Y]);
-        if (isValidNeighbour(terrainPoints, pt, center))
-            newNeighbours.Add(pt);
+        if (centralY < terrainPoints.Length)
+        {
+            pt = new Point(centralX + 1, centralY, terrainPoints[centralX + 1, centralY]);
+            if (isValidNeighbour(terrainPoints, pt, center))
+                newNeighbours.Add(pt);
+        }
 
         //Top row
-        pt = new Point(center.X - 1, center.Y + 1, terrainPoints[center.X - 1, center.Y + 1], true);
-        if (isValidNeighbour(terrainPoints, pt, center))
-            newNeighbours.Add(pt);
+        if (centralX > 0 && centralY < terrainPoints.Length)
+        {
+            pt = new Point(centralX - 1, centralY + 1, terrainPoints[centralX - 1, centralY + 1]);
+            if (isValidNeighbour(terrainPoints, pt, center))
+                newNeighbours.Add(pt);
+        }
 
-        pt = new Point(center.X, center.Y + 1, terrainPoints[center.X, center.Y + 1]);
-        if (isValidNeighbour(terrainPoints, pt, center))
-            newNeighbours.Add(pt);
+        if (centralY < terrainPoints.Length)
+        {
+            pt = new Point(centralX, centralY + 1, terrainPoints[centralX, centralY + 1]);
+            if (isValidNeighbour(terrainPoints, pt, center))
+                newNeighbours.Add(pt);
+        }
 
-        pt = new Point(center.X + 1, center.Y + 1, terrainPoints[center.X + 1, center.Y + 1], true);
-        if (isValidNeighbour(terrainPoints, pt, center))
-            newNeighbours.Add(pt);
+        if (centralX < terrainPoints.Length && centralY < terrainPoints.Length)
+        {
+            pt = new Point(centralX + 1, centralY + 1, terrainPoints[centralX + 1, centralY + 1]);
+            if (isValidNeighbour(terrainPoints, pt, center))
+                newNeighbours.Add(pt);
+        }
 
         if (newNeighbours.Count <= 1)
         {
             Debug.LogError("Not enough neighbours! Could not find suitable neighbour, causing deadlock and no path to be produced.");
             Debug.Break();
-            Debug.DebugBreak();
         }
 
         return newNeighbours;
@@ -243,25 +280,27 @@ public class AStarPathfinding {
     }
 
 }
+#endregion
 
-
-public class Point
+public struct Point
 {
     public int X, Y;
 
     public float height;
 
-    public bool isDiagonal = false;
+    //public bool isDiagonal = false;
 
+    public Point(Point p) { X = p.X; Y = p.Y; height = p.height; }
     public Point(int x, int y, float h) { X = x; Y = y; height = h; }
     public Point(Vector3 v3) { X = (int)v3.x; Y = (int)v3.z; height = v3.y; }
     public Point(Vector2 v2, float h) { X = (int)v2.x; Y = (int)v2.y; height = h; }
     public Point(Vector2Int v2, float h) { X = v2.x; Y = v2.y; height = h; }
 
-    public Point(int x, int y, float h, bool diagonal) { X = x; Y = y; height = h; isDiagonal = diagonal; }
-    public Point(Vector3 v3, bool diagonal) { X = (int)v3.x; Y = (int)v3.z; height = v3.y; isDiagonal = diagonal; }
-    public Point(Vector2 v2, float h, bool diagonal) { X = (int)v2.x; Y = (int)v2.y; height = h; isDiagonal = diagonal; }
-    public Point(Vector2Int v2, float h, bool diagonal) { X = v2.x; Y = v2.y; height = h; isDiagonal = diagonal; }
+    //public Point(int x, int y, float h, bool diagonal) { X = x; Y = y; height = h; isDiagonal = diagonal; }
+    //public Point(Vector3 v3, bool diagonal) { X = (int)v3.x; Y = (int)v3.z; height = v3.y; isDiagonal = diagonal; }
+    //public Point(Vector2 v2, float h, bool diagonal) { X = (int)v2.x; Y = (int)v2.y; height = h; isDiagonal = diagonal; }
+    //public Point(Vector2Int v2, float h, bool diagonal) { X = v2.x; Y = v2.y; height = h; isDiagonal = diagonal; }
+
 
     public bool isSamePoint(Point point)
     {
@@ -272,6 +311,19 @@ public class Point
             return false;
 
         return true;
+    }
+}
+
+class KeyComparer : IEqualityComparer<Point>
+{
+    public bool Equals(Point x, Point y)
+    {
+        return (x.X == y.X) && (x.Y == y.Y) && (x.height == y.height);
+    }
+
+    public int GetHashCode(Point obj)
+    {
+        return obj.GetHashCode();
     }
 }
 
