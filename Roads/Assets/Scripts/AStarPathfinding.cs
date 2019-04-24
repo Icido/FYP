@@ -29,7 +29,6 @@ public class AStarPathfinding {
     //private float normalCost = 1f;
     private float stepCost = 1f;
 
-
     //What causes the hang-time is that the A* algorithm cannot find a clear path from start to finish. Either changing the max angle or chaning the terrain amplitude solves this.
     //There must be a better solution for the A* algorithm to find a clearer path.
 
@@ -98,7 +97,7 @@ public class AStarPathfinding {
 
                 float projectedG;
 
-                projectedG = Mathf.Pow(getGScore(current) + stepCost + (getAngleBetween(current, neighbour) / 45f), 2);
+                projectedG = getGScore(current) + stepCost + (getAngleBetween(current, neighbour) / 45f);
 
                 //if(neighbour.isDiagonal == true)
                 //    projectedG = Mathf.Pow(getGScore(current) + diagonalCost + (getAngleBetween(current, neighbour) / 45f), 2);
@@ -127,7 +126,7 @@ public class AStarPathfinding {
         float dx = Mathf.Pow(finish.X - start.X, 2);
         float dy = Mathf.Pow(finish.Y - start.Y, 2);
         float dHeight = Mathf.Pow(finish.height - start.height, 2);
-        return dx + dy + dHeight;
+        return Mathf.Sqrt(dx + dy + dHeight);
 
     }
 
@@ -182,6 +181,8 @@ public class AStarPathfinding {
         int centralX = center.X;
         int centralY = center.Y;
 
+        int terrUpper = terrainPoints.GetUpperBound(0);
+
         Point pt = new Point(center);
 
         //Bottom row
@@ -199,7 +200,7 @@ public class AStarPathfinding {
                 newNeighbours.Add(pt);
         }
 
-        if (centralX < terrainPoints.Length && centralY > 0)
+        if (centralX < terrUpper && centralY > 0)
         {
             pt = new Point(centralX + 1, centralY - 1, terrainPoints[centralX + 1, centralY - 1]);
             if (isValidNeighbour(terrainPoints, pt, center))
@@ -214,7 +215,7 @@ public class AStarPathfinding {
                 newNeighbours.Add(pt);
         }
 
-        if (centralY < terrainPoints.Length)
+        if (centralX < terrUpper)
         {
             pt = new Point(centralX + 1, centralY, terrainPoints[centralX + 1, centralY]);
             if (isValidNeighbour(terrainPoints, pt, center))
@@ -222,21 +223,21 @@ public class AStarPathfinding {
         }
 
         //Top row
-        if (centralX > 0 && centralY < terrainPoints.Length)
+        if (centralX > 0 && centralY < terrUpper)
         {
             pt = new Point(centralX - 1, centralY + 1, terrainPoints[centralX - 1, centralY + 1]);
             if (isValidNeighbour(terrainPoints, pt, center))
                 newNeighbours.Add(pt);
         }
 
-        if (centralY < terrainPoints.Length)
+        if (centralY < terrUpper)
         {
             pt = new Point(centralX, centralY + 1, terrainPoints[centralX, centralY + 1]);
             if (isValidNeighbour(terrainPoints, pt, center))
                 newNeighbours.Add(pt);
         }
 
-        if (centralX < terrainPoints.Length && centralY < terrainPoints.Length)
+        if (centralX < terrUpper && centralY < terrUpper)
         {
             pt = new Point(centralX + 1, centralY + 1, terrainPoints[centralX + 1, centralY + 1]);
             if (isValidNeighbour(terrainPoints, pt, center))
