@@ -17,12 +17,8 @@ public class AStarPathfinding {
 
     List<Point> neighbours = new List<Point>();
 
-    private int maxNumChecks = 50;
-    private int currentNumChecks = 0;
-
-    private float currentMaxAngle;
     private float maxAngle = 45f; // Should have a max angle of ~15f-20f degrees of steepness, 45f is for testing purposes only!
-                                  // The steepest streets in England range from 21.81 degrees (Vale Street, Bristol) to 16.09 degrees (Gold Hill, Shaftesbury, Dorset)
+                                  // The steepest street gradients in England range from 21.81 degrees (Vale Street, Bristol) to 16.09 degrees (Gold Hill, Shaftesbury, Dorset)
                                   // https://www.bbc.co.uk/news/uk-england-38568893, https://ichef.bbci.co.uk/news/624/cpsprodpb/0BC6/production/_95241030_englands-steepest-streets-6-2.png
 
     //private float diagonalCost = Mathf.Sqrt(2);
@@ -41,9 +37,6 @@ public class AStarPathfinding {
 
         Point start = new Point(startPoint);
         Point finish = new Point(finishPoint);
-
-        currentNumChecks = 0;
-        currentMaxAngle = maxAngle;
 
         //TODO: Figure out how the dictionaries affect further road creation.
         closedSet.Clear();
@@ -71,17 +64,6 @@ public class AStarPathfinding {
             }
 
             counter++;
-
-            //currentNumChecks++;
-
-            //if (openSet.Count > terrainPoints.Length && currentNumChecks >= maxNumChecks)
-            //{
-            //    Debug.Log("Can't find  road from " + startPoint + " to " + finishPoint + "!");
-            //    Debug.Log("Increasing max road angle to attempt to open a path...");
-            //    currentMaxAngle *= 1.15f;
-            //    Debug.Log("New max road angle: " + currentMaxAngle + " degrees.");
-            //    currentNumChecks = 0;
-            //}
 
             openSet.Remove(current);
             closedSet[current] = true;
@@ -244,11 +226,11 @@ public class AStarPathfinding {
                 newNeighbours.Add(pt);
         }
 
-        if (newNeighbours.Count <= 1)
-        {
-            Debug.LogError("Not enough neighbours! Could not find suitable neighbour, causing deadlock and no path to be produced.");
-            Debug.Break();
-        }
+        //if (newNeighbours.Count <= 1)
+        //{
+        //    Debug.LogError("Not enough neighbours! Could not find suitable neighbour, causing deadlock and no path to be produced.");
+        //    //Debug.Break();
+        //}
 
         return newNeighbours;
     }
@@ -264,7 +246,7 @@ public class AStarPathfinding {
         float angleBetween = getAngleBetween(centralPoint, point);
 
         //Checks if the angle is too step between this point and the central point
-        if (angleBetween >= currentMaxAngle)
+        if (angleBetween >= maxAngle)
             return false;
 
 
