@@ -33,48 +33,48 @@ public class PopulationPoints : MonoBehaviour {
 
     public void updateLocations(int terrainMapSize, float noiseScale, float amplitude, int populationMapSize, float highDensityLimit, float populationNoiseScale, int populationAreaSize, int seed, bool displayTerrain)
     {
-        Stopwatch st = new Stopwatch();
+        //Stopwatch st = new Stopwatch();
         previousElapsedMilliseconds = 0;
-        st.Start();
+        //st.Start();
 
         TerrainCalculator.UpdateTerrainMap(terrainMapSize, noiseScale, amplitude);
         //Debug.Log("Finished Terrain generation");
-        previousElapsedMilliseconds = st.ElapsedMilliseconds - previousElapsedMilliseconds;
-        Debug.Log("UpdateTerrainMap took " + previousElapsedMilliseconds + " milliseconds to complete.");
+        //previousElapsedMilliseconds = st.ElapsedMilliseconds - previousElapsedMilliseconds;
+        //Debug.Log("UpdateTerrainMap took " + previousElapsedMilliseconds + " milliseconds to complete.");
 
         terrainPoints = TerrainCalculator.getTerrainPoints();
 
         PopulationCalculator.UpdatePopulationMap(terrainPoints, populationMapSize, highDensityLimit, populationNoiseScale, populationAreaSize);
         //Debug.Log("Finished Population generation");
-        previousElapsedMilliseconds = st.ElapsedMilliseconds - previousElapsedMilliseconds;
-        Debug.Log("UpdatePopulationMap took " + st.ElapsedMilliseconds + " milliseconds to complete.");
+        //previousElapsedMilliseconds = st.ElapsedMilliseconds - previousElapsedMilliseconds;
+        //Debug.Log("UpdatePopulationMap took " + st.ElapsedMilliseconds + " milliseconds to complete.");
 
         popList = PopulationCalculator.getHighPopAreas();
         hotspotGeneration(PopulationCalculator.getHighPopAreas());
         //Debug.Log("Finished Hotspot generation");
-        previousElapsedMilliseconds = st.ElapsedMilliseconds - previousElapsedMilliseconds;
-        Debug.Log("HotspotGeneration took " + st.ElapsedMilliseconds + " milliseconds to complete.");
+        //previousElapsedMilliseconds = st.ElapsedMilliseconds - previousElapsedMilliseconds;
+        //Debug.Log("HotspotGeneration took " + st.ElapsedMilliseconds + " milliseconds to complete.");
 
         if (displayTerrain)
         {
             terrainSpotGeneration(terrainPoints);
             //Debug.Log("Finished TerrainPoint generation");
-            previousElapsedMilliseconds = st.ElapsedMilliseconds - previousElapsedMilliseconds;
-            Debug.Log("TerrainSpotGeneration took " + st.ElapsedMilliseconds + " milliseconds to complete.");
+            //previousElapsedMilliseconds = st.ElapsedMilliseconds - previousElapsedMilliseconds;
+            //Debug.Log("TerrainSpotGeneration took " + st.ElapsedMilliseconds + " milliseconds to complete.");
 
         }
 
         NearestNeighbourFinder.roadConnections(populationHotSpots, seed);
         //Debug.Log("Finished finding nearest neighbours");
-        previousElapsedMilliseconds = st.ElapsedMilliseconds - previousElapsedMilliseconds;
-        Debug.Log("RoadConnections took " + st.ElapsedMilliseconds + " milliseconds to complete.");
+        //previousElapsedMilliseconds = st.ElapsedMilliseconds - previousElapsedMilliseconds;
+        //Debug.Log("RoadConnections took " + st.ElapsedMilliseconds + " milliseconds to complete.");
 
         roadGeneration(populationHotSpots, terrainPoints);
         //Debug.Log("Finished Road generation");
-        previousElapsedMilliseconds = st.ElapsedMilliseconds - previousElapsedMilliseconds;
-        Debug.Log("RoadGeneration took " + st.ElapsedMilliseconds + " milliseconds to complete.");
+        //previousElapsedMilliseconds = st.ElapsedMilliseconds - previousElapsedMilliseconds;
+        //Debug.Log("RoadGeneration took " + st.ElapsedMilliseconds + " milliseconds to complete.");
 
-        st.Stop();
+        //st.Stop();
 
         return;
     }
@@ -159,10 +159,15 @@ public class PopulationPoints : MonoBehaviour {
             }
         }
 
+        Stopwatch st = new Stopwatch();
+        st.Start();
         foreach (GameObject location in locations)
         {
+
             //Create a temporary list of keys to iterate over to prevent iteration errors while in the foreach loop
             List<GameObject> keys = new List<GameObject>(location.GetComponent<StoredNearestNeighbours>().Neighbours.Keys);
+
+            int roadNum = 0;
 
             foreach (GameObject point in keys)
             {
@@ -193,11 +198,18 @@ public class PopulationPoints : MonoBehaviour {
                     newRoad.transform.localScale = new Vector3(newRoad.transform.localScale.x, newRoad.transform.localScale.y, distanceBetween);
                 }
 
+                roadNum++;
 
                 location.GetComponent<StoredNearestNeighbours>().Neighbours[point] = true;
                 locations.Find(o => o == point).GetComponent<StoredNearestNeighbours>().Neighbours[location] = true;
             }
+
+            previousElapsedMilliseconds = st.ElapsedMilliseconds - previousElapsedMilliseconds;
+            Debug.Log(roadNum + " roads from point " + location.transform.position + " took " + st.ElapsedMilliseconds + " milliseconds to complete.");
+
         }
+
+        st.Stop();
 
         return;
     }
@@ -207,144 +219,6 @@ public class PopulationPoints : MonoBehaviour {
 
         yield return null;
 
-    }
-
-
-
-    List<Vector2Int> get8AdjacentLocations(int maxTerrainEdge, Vector2Int Vector2Int, Vector2Int parentVector2Int)
-    {
-        List<Vector2Int> adjacentLocations = new List<Vector2Int>();
-
-        bool isLeftHorizontalEdge = false;
-        bool isRightHorizontalEdge = false;
-
-        bool isTopVerticleEdge = false;
-        bool isBottomVerticalEdge = false;
-
-        if (Vector2Int.x == 0)
-        {
-            isLeftHorizontalEdge = true;
-        }
-        else if (Vector2Int.x == maxTerrainEdge)
-        {
-            isRightHorizontalEdge = true;
-        }
-
-        if (Vector2Int.y == 0)
-        {
-            isBottomVerticalEdge = true;
-        }
-        else if (Vector2Int.y == maxTerrainEdge)
-        {
-            isTopVerticleEdge = true;
-        }
-
-        if (isTopVerticleEdge && isLeftHorizontalEdge)
-        {
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x + 1, Vector2Int.y));
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x + 1, Vector2Int.y - 1));
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y - 1));
-
-            adjacentLocations.Remove(parentVector2Int);
-
-            return adjacentLocations;
-        }
-        else if (isTopVerticleEdge && isRightHorizontalEdge)
-        {
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x - 1, Vector2Int.y));
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x - 1, Vector2Int.y - 1));
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y - 1));
-
-            adjacentLocations.Remove(parentVector2Int);
-
-            return adjacentLocations;
-        }
-        else if (isBottomVerticalEdge && isLeftHorizontalEdge)
-        {
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x + 1, Vector2Int.y));
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x + 1, Vector2Int.y + 1));
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y + 1));
-
-            adjacentLocations.Remove(parentVector2Int);
-
-            return adjacentLocations;
-        }
-        else if (isBottomVerticalEdge && isRightHorizontalEdge)
-        {
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x - 1, Vector2Int.y));
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x - 1, Vector2Int.y + 1));
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y + 1));
-
-            adjacentLocations.Remove(parentVector2Int);
-
-            return adjacentLocations;
-        }
-        else if (isTopVerticleEdge)
-        {
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x - 1, Vector2Int.y));
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x - 1, Vector2Int.y - 1));
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y - 1));
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x + 1, Vector2Int.y - 1));
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x + 1, Vector2Int.y));
-
-            adjacentLocations.Remove(parentVector2Int);
-
-            return adjacentLocations;
-        }
-        else if (isBottomVerticalEdge)
-        {
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x - 1, Vector2Int.y));
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x - 1, Vector2Int.y + 1));
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y + 1));
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x + 1, Vector2Int.y + 1));
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x + 1, Vector2Int.y));
-
-            adjacentLocations.Remove(parentVector2Int);
-
-            return adjacentLocations;
-        }
-        else if (isLeftHorizontalEdge)
-        {
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y + 1));
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x + 1, Vector2Int.y + 1));
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x + 1, Vector2Int.y));
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x + 1, Vector2Int.y - 1));
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y - 1));
-
-            adjacentLocations.Remove(parentVector2Int);
-
-            return adjacentLocations;
-        }
-        else if (isRightHorizontalEdge)
-        {
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y + 1));
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x - 1, Vector2Int.y + 1));
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x - 1, Vector2Int.y));
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x - 1, Vector2Int.y - 1));
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y - 1));
-
-            adjacentLocations.Remove(parentVector2Int);
-
-            return adjacentLocations;
-        }
-        else
-        {
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y + 1));
-
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x + 1, Vector2Int.y + 1));
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x + 1, Vector2Int.y));
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x + 1, Vector2Int.y - 1));
-
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x, Vector2Int.y - 1));
-
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x - 1, Vector2Int.y - 1));
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x - 1, Vector2Int.y));
-            adjacentLocations.Add(new Vector2Int(Vector2Int.x - 1, Vector2Int.y + 1));
-
-            adjacentLocations.Remove(parentVector2Int);
-
-            return adjacentLocations;
-        }
     }
 
 
