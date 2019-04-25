@@ -2,24 +2,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TerrainCalculator : MonoBehaviour {
+public static class TerrainCalculator {
 
-    public int mapSize;
+    private static float[,] terrainMap;
 
-    [Range(1f, 50f)]
-    public float noiseScale;
+    //private float maxTerrainValue = float.MinValue;
 
-    public float amplitude;
+    //private float minTerrainValue = float.MaxValue;
 
-    private float[,] terrainMap;
+    //private float averageTerrainValue = 0f;
 
-    private float maxTerrainValue = float.MinValue;
-
-    private float minTerrainValue = float.MaxValue;
-
-    private float averageTerrainValue = 0f;
-
-    public void UpdateTerrainMap()
+    public static void UpdateTerrainMap(int mapSize, float noiseScale, float amplitude)
     {
         float[,] tempTerMap = Noise.GenerateNoiseMapArray(mapSize, noiseScale, amplitude);
 
@@ -28,49 +21,51 @@ public class TerrainCalculator : MonoBehaviour {
         {
             terrainMap = tempTerMap;
 
-            GatherTerrainData(terrainMap);
+            //GatherTerrainData(terrainMap);
         }
     }
 
-    public void GatherTerrainData(float[,] noiseMap)
-    {
-        for (int y = 0; y < mapSize; y++)
-        {
-            for (int x = 0; x < mapSize; x++)
-            {
-                if (maxTerrainValue < noiseMap[x, y])
-                    maxTerrainValue = noiseMap[x, y];
-
-                if (minTerrainValue > noiseMap[x, y])
-                    minTerrainValue = noiseMap[x, y];
-
-                averageTerrainValue += noiseMap[x, y];
-            }
-        }
-
-        averageTerrainValue /= (mapSize * mapSize);
-
-        return;
-    }
-
-    public float[,] getTerrainPoints()
+    public static float[,] getTerrainPoints()
     {
         return terrainMap;
     }
 
-    public float getMaxTerrainValue()
-    {
-        return maxTerrainValue;
-    }
+    //public void GatherTerrainData(float[,] noiseMap)
+    //{
+    //    int mapSize = noiseMap.GetUpperBound(0) + 1;
 
-    public float getMinTerrainValue()
-    {
-        return minTerrainValue;
-    }
+    //    for (int y = 0; y < mapSize; y++)
+    //    {
+    //        for (int x = 0; x < mapSize; x++)
+    //        {
+    //            if (maxTerrainValue < noiseMap[x, y])
+    //                maxTerrainValue = noiseMap[x, y];
 
-    public float getAverageTerrainValue()
-    {
-        return averageTerrainValue;
-    }
+    //            if (minTerrainValue > noiseMap[x, y])
+    //                minTerrainValue = noiseMap[x, y];
+
+    //            averageTerrainValue += noiseMap[x, y];
+    //        }
+    //    }
+
+    //    averageTerrainValue /= (mapSize * mapSize);
+
+    //    return;
+    //}
+
+    //public float getMaxTerrainValue()
+    //{
+    //    return maxTerrainValue;
+    //}
+
+    //public float getMinTerrainValue()
+    //{
+    //    return minTerrainValue;
+    //}
+
+    //public float getAverageTerrainValue()
+    //{
+    //    return averageTerrainValue;
+    //}
 
 }

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public static class NearestNeighbourFinder {
 
-    public static void roadConnections(List<GameObject> locations, float mapSize, int seed)
+    public static void roadConnections(List<GameObject> locations, int seed)
     {
 
         Random.InitState(seed);
@@ -25,10 +25,10 @@ public static class NearestNeighbourFinder {
             if (numRemainingConnections <= 0)
                 continue;
 
-            float savedLoc1dist = new Vector3(-mapSize, -mapSize, -mapSize).sqrMagnitude;
-            float savedLoc2dist = new Vector3(-mapSize, -mapSize, -mapSize).sqrMagnitude;
-            float savedLoc3dist = new Vector3(-mapSize, -mapSize, -mapSize).sqrMagnitude;
-            float savedLoc4dist = new Vector3(-mapSize, -mapSize, -mapSize).sqrMagnitude;
+            float savedLoc1dist = new Vector3(-float.MaxValue, -float.MaxValue, -float.MaxValue).sqrMagnitude;
+            float savedLoc2dist = new Vector3(-float.MaxValue, -float.MaxValue, -float.MaxValue).sqrMagnitude;
+            float savedLoc3dist = new Vector3(-float.MaxValue, -float.MaxValue, -float.MaxValue).sqrMagnitude;
+            float savedLoc4dist = new Vector3(-float.MaxValue, -float.MaxValue, -float.MaxValue).sqrMagnitude;
 
             int savedLoc1index = -1;
             int savedLoc2index = -1;

@@ -2,41 +2,33 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PopulationCalculator : MonoBehaviour {
+public static class PopulationCalculator {
 
-    public int mapSize;
+    private static List<Vector3> noiseMap;
 
-    [Range(0f, 1f)]
-    public float highDensityLimit = 0.95f;
+    private static float populationSizeToTerrainSize;
 
-    [Range(1f, 50f)]
-    public float noiseScale;
+    private static List<Vector2> tempLocVec = new List<Vector2>();
 
-    public int populationAreaSize;
+    private static List<Vector2> HighPopDensityLocations = new List<Vector2>();
 
-    public int seed;
+    private static List<Vector3> HighPopDensityAreas = new List<Vector3>();
 
-    private List<Vector3> noiseMap;
-
-    private List<Vector2> tempLocVec = new List<Vector2>();
-
-    private List<Vector2> HighPopDensityLocations = new List<Vector2>();
-
-    private List<Vector3> HighPopDensityAreas = new List<Vector3>();
-
-    public void UpdatePopulationMap(float[,] terrainPoints)
+    public static void UpdatePopulationMap(float[,] terrainPoints, int populationMapSize, float highDensityLimit, float noiseScale, int populationAreaSize)
     {
-        List<Vector3> tempPopMap = Noise.GenerateNoiseMapList(mapSize, noiseScale);
+        List<Vector3> tempPopMap = Noise.GenerateNoiseMapList(populationMapSize, noiseScale);
 
-        if (tempPopMap != noiseMap)
-        {
-            noiseMap = tempPopMap;
+        populationSizeToTerrainSize = terrainPoints.GetUpperBound(0) + 1;
+
+        populationSizeToTerrainSize /= populationMapSize;
+
+        noiseMap = tempPopMap;
             
-            DrawPopulationMap(noiseMap, terrainPoints);
-        }
+        DrawPopulationMap(noiseMap, terrainPoints, highDensityLimit, populationAreaSize);
+        
     }
 
-    public void DrawPopulationMap(List<Vector3> noiseMap, float[,] terrainPoints)
+    public static void DrawPopulationMap(List<Vector3> noiseMap, float[,] terrainPoints, float highDensityLimit, int populationAreaSize)
     {
         HighPopDensityLocations.Clear();
         HighPopDensityAreas.Clear();
@@ -78,7 +70,10 @@ public class PopulationCalculator : MonoBehaviour {
                 tempY += tempLocVec[v].y;
             }
 
-            Vector3 tempVec3 = new Vector3(Mathf.RoundToInt(tempX / tempCount), 0, Mathf.RoundToInt(tempY / tempCount));
+            float newTempX = tempX / tempCount;
+            float newTempY = tempY / tempCount;
+
+            Vector3 tempVec3 = new Vector3(Mathf.RoundToInt(newTempX * populationSizeToTerrainSize), 0, Mathf.RoundToInt(newTempY * populationSizeToTerrainSize));
 
             if(!HighPopDensityAreas.Contains(tempVec3))
             {
@@ -92,13 +87,8 @@ public class PopulationCalculator : MonoBehaviour {
         }
     }
 
-    public List<Vector3> getHighPopAreas()
+    public static List<Vector3> getHighPopAreas()
     {
         return HighPopDensityAreas;
-    }
-
-    public int getMapSize()
-    {
-        return mapSize;
     }
 }

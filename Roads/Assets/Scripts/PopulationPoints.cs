@@ -1,12 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Diagnostics;
+using Debug = UnityEngine.Debug;
+
 
 public class PopulationPoints : MonoBehaviour {
-
-    public PopulationCalculator populationGeneration;
-
-    public TerrainCalculator terrainGeneration;
 
     public GameObject populationHubObject;
 
@@ -30,30 +29,52 @@ public class PopulationPoints : MonoBehaviour {
 
     private AStarPathfinding aStar = new AStarPathfinding();
 
+    private long previousElapsedMilliseconds = 0;
 
-    public void updateLocations()
+    public void updateLocations(int terrainMapSize, float noiseScale, float amplitude, int populationMapSize, float highDensityLimit, float populationNoiseScale, int populationAreaSize, int seed, bool displayTerrain)
     {
-        
-        terrainGeneration.UpdateTerrainMap(); //TODO: Inverse mapToTerrain the other way, so that the map maps to the terrain instead
+        Stopwatch st = new Stopwatch();
+        previousElapsedMilliseconds = 0;
+        st.Start();
+
+        TerrainCalculator.UpdateTerrainMap(terrainMapSize, noiseScale, amplitude);
         //Debug.Log("Finished Terrain generation");
-        
-        terrainPoints = terrainGeneration.getTerrainPoints();
+        previousElapsedMilliseconds = st.ElapsedMilliseconds - previousElapsedMilliseconds;
+        Debug.Log("UpdateTerrainMap took " + previousElapsedMilliseconds + " milliseconds to complete.");
 
-        populationGeneration.UpdatePopulationMap(terrainPoints);
+        terrainPoints = TerrainCalculator.getTerrainPoints();
+
+        PopulationCalculator.UpdatePopulationMap(terrainPoints, populationMapSize, highDensityLimit, populationNoiseScale, populationAreaSize);
         //Debug.Log("Finished Population generation");
-        
-        popList = populationGeneration.getHighPopAreas();
-        hotspotGeneration(populationGeneration.getHighPopAreas());
+        previousElapsedMilliseconds = st.ElapsedMilliseconds - previousElapsedMilliseconds;
+        Debug.Log("UpdatePopulationMap took " + st.ElapsedMilliseconds + " milliseconds to complete.");
+
+        popList = PopulationCalculator.getHighPopAreas();
+        hotspotGeneration(PopulationCalculator.getHighPopAreas());
         //Debug.Log("Finished Hotspot generation");
+        previousElapsedMilliseconds = st.ElapsedMilliseconds - previousElapsedMilliseconds;
+        Debug.Log("HotspotGeneration took " + st.ElapsedMilliseconds + " milliseconds to complete.");
 
-        //terrainSpotGeneration(terrainPoints);
-        //Debug.Log("Finished TerrainPoint generation");
+        if (displayTerrain)
+        {
+            terrainSpotGeneration(terrainPoints);
+            //Debug.Log("Finished TerrainPoint generation");
+            previousElapsedMilliseconds = st.ElapsedMilliseconds - previousElapsedMilliseconds;
+            Debug.Log("TerrainSpotGeneration took " + st.ElapsedMilliseconds + " milliseconds to complete.");
 
-        NearestNeighbourFinder.roadConnections(populationHotSpots, populationGeneration.mapSize, populationGeneration.seed);
+        }
+
+        NearestNeighbourFinder.roadConnections(populationHotSpots, seed);
         //Debug.Log("Finished finding nearest neighbours");
+        previousElapsedMilliseconds = st.ElapsedMilliseconds - previousElapsedMilliseconds;
+        Debug.Log("RoadConnections took " + st.ElapsedMilliseconds + " milliseconds to complete.");
 
         roadGeneration(populationHotSpots, terrainPoints);
         //Debug.Log("Finished Road generation");
+        previousElapsedMilliseconds = st.ElapsedMilliseconds - previousElapsedMilliseconds;
+        Debug.Log("RoadGeneration took " + st.ElapsedMilliseconds + " milliseconds to complete.");
+
+        st.Stop();
 
         return;
     }
@@ -155,7 +176,7 @@ public class PopulationPoints : MonoBehaviour {
 
                 roadConnectionsList = aStar.roadConnections(point.transform.position, location.transform.position, terrPoints);
                 roadConnectionsList.Insert(0, new Vector2Int((int)point.transform.position.x, (int)point.transform.position.z)); ;
-                Debug.Log("Road from " + point.transform.position + " to " + location.transform.position + " has " + roadConnectionsList.Count + " connection points between");
+                //Debug.Log("Road from " + point.transform.position + " to " + location.transform.position + " has " + roadConnectionsList.Count + " connection points between");
 
                 for (int i = 0; i < roadConnectionsList.Count - 1; i++)
                 {

@@ -123,8 +123,6 @@ GameObject:
   - component: {fileID: 380316150}
   - component: {fileID: 380316152}
   - component: {fileID: 380316149}
-  - component: {fileID: 380316151}
-  - component: {fileID: 380316153}
   m_Layer: 0
   m_Name: Generation Controller
   m_TagString: Untagged
@@ -143,16 +141,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e1a6b463cfed34d439c858c11aa7149d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  populationGeneration: {fileID: 380316151}
-  terrainGeneration: {fileID: 380316153}
   populationHubObject: {fileID: 1952119202769536, guid: eae4a354377a3ec48a21e8d63195f451,
     type: 2}
   terrainObject: {fileID: 1952119202769536, guid: 688e533897bfdcd42b25f0b09bbcddaa,
     type: 2}
   roadObject: {fileID: 1054941729665846, guid: 414bc206fa8c3d84882a7f712b449299, type: 2}
-  populationHotSpots: []
-  terrainSpots: []
-  popList: []
 --- !u!4 &380316150
 Transform:
   m_ObjectHideFlags: 0
@@ -166,22 +159,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &380316151
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 380316148}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d2a722f612b7cea459a0de42e385d127, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  mapSize: 100
-  highDensityLimit: 0.95
-  noiseScale: 4
-  populationAreaSize: 3
-  seed: 0
 --- !u!114 &380316152
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -194,20 +171,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   popPoints: {fileID: 380316149}
---- !u!114 &380316153
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 380316148}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4dcaf6c0fbf690d48b698d0e9a3684b9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  mapSize: 100
-  noiseScale: 35
+  terrainMapSize: 100
+  terrainNoiseScale: 35
   amplitude: 40
+  populationMapSize: 100
+  highDensityLimit: 0.95
+  populationNoiseScale: 4
+  populationAreaSize: 3
+  seed: 0
+  displayTerrain: 0
 --- !u!1 &832425572
 GameObject:
   m_ObjectHideFlags: 0
