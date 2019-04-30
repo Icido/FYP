@@ -17,8 +17,6 @@ public class PopulationPoints : MonoBehaviour {
 
     private List<GameObject> terrainSpots = new List<GameObject>();
 
-    private List<Vector3> popList = new List<Vector3>();
-
     private List<Vector2Int> roadConnectionsList = new List<Vector2Int>();
 
     private GameObject popSpots;
@@ -29,12 +27,12 @@ public class PopulationPoints : MonoBehaviour {
 
     private AStarPathfinding aStar = new AStarPathfinding();
 
-    private long previousElapsedMilliseconds = 0;
+    //private long previousElapsedMilliseconds = 0;
 
     public void updateLocations(int terrainMapSize, float noiseScale, float amplitude, int populationMapSize, float highDensityLimit, float populationNoiseScale, int populationAreaSize, int seed, bool displayTerrain)
     {
         //Stopwatch st = new Stopwatch();
-        previousElapsedMilliseconds = 0;
+        //previousElapsedMilliseconds = 0;
         //st.Start();
 
         TerrainCalculator.UpdateTerrainMap(terrainMapSize, noiseScale, amplitude);
@@ -49,7 +47,6 @@ public class PopulationPoints : MonoBehaviour {
         //previousElapsedMilliseconds = st.ElapsedMilliseconds - previousElapsedMilliseconds;
         //Debug.Log("UpdatePopulationMap took " + st.ElapsedMilliseconds + " milliseconds to complete.");
 
-        popList = PopulationCalculator.getHighPopAreas();
         hotspotGeneration(PopulationCalculator.getHighPopAreas());
         //Debug.Log("Finished Hotspot generation");
         //previousElapsedMilliseconds = st.ElapsedMilliseconds - previousElapsedMilliseconds;
@@ -82,7 +79,8 @@ public class PopulationPoints : MonoBehaviour {
     void hotspotGeneration(List<Vector3> hotspots)
     {
 
-        if(GameObject.Find("Population Points") == null)
+        //if(GameObject.Find("Population Points") == null)
+        if(popSpots == null)
         {
             popSpots = new GameObject();
             popSpots.name = "Population Points";
@@ -102,9 +100,12 @@ public class PopulationPoints : MonoBehaviour {
         foreach (Vector3 location in hotspots)
         {
             GameObject popHub = Instantiate(populationHubObject, location, Quaternion.identity, popSpots.transform);
-            popHub.name = "Hotspot location " + popList.IndexOf(location);
+            popHub.name = "Hotspot location " + hotspots.IndexOf(location);
             populationHotSpots.Add(popHub);
         }
+
+        if (!popSpots.activeInHierarchy)
+            popSpots.SetActive(true);
 
         return;
     }
@@ -112,7 +113,8 @@ public class PopulationPoints : MonoBehaviour {
     void terrainSpotGeneration(float[,] terrainPoints)
     {
 
-        if (GameObject.Find("Terrain Points") == terSpots)
+        //if (GameObject.Find("Terrain Points") == null)
+        if (terSpots == null)
         {
             terSpots = new GameObject();
             terSpots.name = "Terrain Points";
@@ -139,7 +141,7 @@ public class PopulationPoints : MonoBehaviour {
             }
         }
 
-        terSpots.SetActive(false);
+        //terSpots.SetActive(false);
 
         return;
     }
@@ -159,8 +161,8 @@ public class PopulationPoints : MonoBehaviour {
             }
         }
 
-        Stopwatch st = new Stopwatch();
-        st.Start();
+        //Stopwatch st = new Stopwatch();
+        //st.Start();
         foreach (GameObject location in locations)
         {
 
@@ -204,12 +206,12 @@ public class PopulationPoints : MonoBehaviour {
                 locations.Find(o => o == point).GetComponent<StoredNearestNeighbours>().Neighbours[location] = true;
             }
 
-            previousElapsedMilliseconds = st.ElapsedMilliseconds - previousElapsedMilliseconds;
-            Debug.Log(roadNum + " roads from point " + location.transform.position + " took " + st.ElapsedMilliseconds + " milliseconds to complete.");
+            //previousElapsedMilliseconds = st.ElapsedMilliseconds - previousElapsedMilliseconds;
+            //Debug.Log(roadNum + " roads from point " + location.transform.position + " took " + st.ElapsedMilliseconds + " milliseconds to complete.");
 
         }
 
-        st.Stop();
+        //st.Stop();
 
         return;
     }
