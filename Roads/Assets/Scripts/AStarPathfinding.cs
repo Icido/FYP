@@ -1,6 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Diagnostics;
+using Debug = UnityEngine.Debug;
+
 
 public class AStarPathfinding {
 
@@ -17,18 +20,14 @@ public class AStarPathfinding {
 
     List<Point> neighbours = new List<Point>();
 
+    public List<Vector3> newRoad = new List<Vector3>();
+
     private float diagonalCost = Mathf.Sqrt(2);
     private float normalCost = 1f;
 
     private float maxAngle;
 
-    //What causes the hang-time is that the A* algorithm cannot find a clear path from start to finish. Either changing the max angle or chaning the terrain amplitude solves this.
-    //There must be a better solution for the A* algorithm to find a clearer path.
-
-    //Paper for better and more efficient deadlock failsafes (if deadlock becomes a problem again)
-    //https://www.aaai.org/Papers/ICAPS/2008/ICAPS08-047.pdf
-
-    public List<Vector2Int> roadConnections(Vector3 startPoint, Vector3 finishPoint, float[,] terrainPoints, bool[,,] terrainChecker, float riseOverRun)
+    public IEnumerator runCoroutine(Vector3 startPoint, Vector3 finishPoint, float[,] terrainPoints, bool[,,] terrainChecker, float riseOverRun)
     {
         neighbours.Clear();
 
@@ -37,14 +36,11 @@ public class AStarPathfinding {
         Point start = new Point(startPoint);
         Point finish = new Point(finishPoint);
 
-        //TODO: Figure out how the dictionaries affect further road creation.
         closedSet.Clear();
         openSet.Clear();
         gScore.Clear();
         fScore.Clear();
         nodeLinks.Clear();
-
-        //Debug.Log("Initial fScore from " + startPoint + " to " + finishPoint + ": " + EuclideanHeuristic(start, finish));
 
         openSet[start] = true;
         gScore[start] = 0;
@@ -52,17 +48,18 @@ public class AStarPathfinding {
 
         int counter = 0;
 
-        while(openSet.Count > 0)
+        while (openSet.Count > 0)
         {
             Point current = nextBest();
 
             if (current.isSamePoint(finish))
             {
                 //Debug.Log("Finished finding road from " + startPoint + " to " + finishPoint + " in " + counter + " steps");
-                return reconstruction(current);
+                newRoad = reconstruction(current, terrainPoints);
+                yield break;
             }
 
-            if(counter > terrainPoints.Length)
+            if (counter > terrainPoints.Length)
             {
                 Debug.LogError("Unable to find a route in a suitable length of time from " + startPoint + " to " + finishPoint);
                 break;
@@ -75,9 +72,9 @@ public class AStarPathfinding {
 
             neighbours.Clear();
             getNeighbours(terrainPoints, terrainChecker, current);
-            
 
-            foreach(var neighbour in neighbours)
+
+            foreach (var neighbour in neighbours)
             {
                 if (closedSet.ContainsKey(neighbour))
                     continue;
@@ -100,10 +97,14 @@ public class AStarPathfinding {
                 gScore[neighbour] = projectedG;
                 fScore[neighbour] = projectedG + EuclideanHeuristic(neighbour, finish);
             }
-        }
 
-        return new List<Vector2Int>();
+            //Using yield return null waits until the end of the update, therefore making the process much longer, if it even actually completes
+            //yield return null;
+
+        }
+        yield break;
     }
+
 
     #region HelperFunctions
 
@@ -113,7 +114,6 @@ public class AStarPathfinding {
         float dy = Mathf.Pow(finish.Y - start.Y, 2);
         float dHeight = Mathf.Pow(finish.height - start.height, 2);
         return Mathf.Sqrt(dx + dy + dHeight);
-
     }
 
     private Point nextBest()
@@ -147,12 +147,12 @@ public class AStarPathfinding {
         return score;
     }
 
-    private List<Vector2Int> reconstruction(Point current)
+    private List<Vector3> reconstruction(Point current, float[,] terrPoints)
     {
-        List<Vector2Int> path = new List<Vector2Int>();
+        List<Vector3> path = new List<Vector3>();
         while(nodeLinks.ContainsKey(current))
         {
-            path.Add(new Vector2Int(current.X, current.Y));
+            path.Add(new Vector3(current.X, terrPoints[current.X, current.Y], current.Y));
             current = nodeLinks[current];
         }
 

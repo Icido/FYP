@@ -89,7 +89,7 @@ public static class TerrainCalculator {
         float dXLength = Vector2.Distance(new Vector2(neighbourX, neighbourY), new Vector2(x, y));
         float angleBetween = dYHeight / dXLength;
 
-        if (angleBetween >= currentMaxAngle)
+        if (angleBetween > currentMaxAngle)
             return false;
 
 

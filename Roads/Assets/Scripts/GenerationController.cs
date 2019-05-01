@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using System.Diagnostics;
 using Debug = UnityEngine.Debug;
 
+[RequireComponent(typeof(PopulationPoints))]
 public class GenerationController : MonoBehaviour {
 
     public Button generateButton;
@@ -34,24 +35,37 @@ public class GenerationController : MonoBehaviour {
 
     public Button showHideButton;
 
-    public RectTransform controllerUI;
+    public RectTransform UIGroup;
 
-    private float timeOfTravel = 0.25f;
+    private float UItimeOfTravel = 0.25f;
 
-    private float currentTime = 0f;
+    private float UIcurrentTime = 0f;
 
-    private float normalizedValue;
+    private float UInormalizedValue;
 
-    private Vector3 startPosition;
+    private Vector3 UIstartPosition;
 
-    private Vector3 endPosition;
+    private Vector3 UIendPosition;
 
     private bool isHidden = false;
 
 
+    public RectTransform WarningGroup;
+
+    public Text WarningText;
+
+    private float WarningTimeOfTravel = 0.25f;
+
+    private float WarningCurrentTime = 0f;
+
+    private float WarningNormalizedValue;
+
+    private Vector3 WarningStartPosition;
+
+    private Vector3 WarningEndPosition;
 
 
-    [SerializeField]
+
     private PopulationPoints popPoints;
 
     //Ensure terrainMapSize is never 0 or below
@@ -79,32 +93,32 @@ public class GenerationController : MonoBehaviour {
 
     private void Start()
     {
-        generateButton.onClick.AddListener(beginGeneration);
+        popPoints = GetComponent<PopulationPoints>();
 
+        generateButton.onClick.AddListener(beginGeneration);
         showHideButton.onClick.AddListener(showHideWrapper);
     }
+
 
     void beginGeneration()
     {
         //Check all inputs are valid, then run
         //else return an error
 
-        if(terrMapSizeInputField.text == null ||
-            terrNoiseScaleInputField.text == null ||
-            terrAmplitudeInputField.text == null ||
-            popMapSizeInputField.text == null ||
-            popNoiseScaleInputField.text == null ||
-            highDensityLimitInputField.text == null ||
-            popAreaLimitInputField.text == null)
+        if(terrMapSizeInputField.text == "" ||
+            terrNoiseScaleInputField.text == "" ||
+            terrAmplitudeInputField.text == "" ||
+            popMapSizeInputField.text == "" ||
+            popNoiseScaleInputField.text == "" ||
+            highDensityLimitInputField.text == "" ||
+            popAreaLimitInputField.text == "")
         {
-            //Return error
-            Debug.Log("Input incorrect!");
+            StartCoroutine(errorShow(1));
             return;
         }
 
         //Checks if the input values are the exact same as the previous input values
         //else return stating that it's already finished
-
         if (int.Parse(terrMapSizeInputField.text) == terrainMapSize &&
             float.Parse(terrNoiseScaleInputField.text) == terrainNoiseScale &&
             float.Parse(terrAmplitudeInputField.text) == amplitude &&
@@ -115,8 +129,7 @@ public class GenerationController : MonoBehaviour {
             int.Parse(seedInputField.text) == seed &&
             displayTerrain == renderTerrainToggle.isOn)
         {
-            //Return as same previous inputs
-            Debug.Log("Input already done!");
+            StartCoroutine(errorShow(2));
             return;
         }
 
@@ -127,17 +140,21 @@ public class GenerationController : MonoBehaviour {
 
         if(terrainMapSize <= 0)
         {
-            //Return error
-            Debug.Log("Input incorrect!");
+            StartCoroutine(errorShow(3));
             return;
         }
 
         terrainNoiseScale = float.Parse(terrNoiseScaleInputField.text);
 
-        if(terrainNoiseScale > 50f || terrainNoiseScale < 1f)
+        if(terrainNoiseScale > 50f)
         {
-            //Return error
-            Debug.Log("Input incorrect!");
+            StartCoroutine(errorShow(4));
+            return;
+        }
+
+        if (terrainNoiseScale < 1f)
+        {
+            StartCoroutine(errorShow(5));
             return;
         }
 
@@ -145,8 +162,7 @@ public class GenerationController : MonoBehaviour {
 
         if(amplitude < 0f)
         {
-            //Return error
-            Debug.Log("Input incorrect!");
+            StartCoroutine(errorShow(6));
             return;
         }
 
@@ -154,26 +170,35 @@ public class GenerationController : MonoBehaviour {
 
         if(populationMapSize <= 0)
         {
-            //Return error
-            Debug.Log("Input incorrect!");
+            StartCoroutine(errorShow(7));
             return;
         }
 
         populationNoiseScale = float.Parse(popNoiseScaleInputField.text);
 
-        if(populationNoiseScale > 50f || populationNoiseScale < 1f)
+        if(populationNoiseScale > 50f)
         {
-            //Return error
-            Debug.Log("Input incorrect!");
+            StartCoroutine(errorShow(8));
+            return;
+        }
+
+        if(populationNoiseScale < 1f)
+        {
+            StartCoroutine(errorShow(9));
             return;
         }
 
         highDensityLimit = float.Parse(highDensityLimitInputField.text);
 
-        if(highDensityLimit < 0f || highDensityLimit > 1f)
+        if(highDensityLimit < 0f)
         {
-            //Return error
-            Debug.Log("Input incorrect!");
+            StartCoroutine(errorShow(10));
+            return;
+        }
+
+        if(highDensityLimit > 1f)
+        {
+            StartCoroutine(errorShow(11));
             return;
         }
 
@@ -181,12 +206,11 @@ public class GenerationController : MonoBehaviour {
 
         if(populationAreaSize < 0)
         {
-            //Return error
-            Debug.Log("Input incorrect!");
+            StartCoroutine(errorShow(12));
             return;
         }
 
-        if (seedInputField.text == null)
+        if (seedInputField.text == "")
         {
             seed = Random.Range(0, 1000);
         }
@@ -197,15 +221,7 @@ public class GenerationController : MonoBehaviour {
 
         displayTerrain = renderTerrainToggle.isOn;
 
-        //Stopwatch st = new Stopwatch();
-
-        //Debug.Log("Updating...");
-        //st.Start();
-        popPoints.updateLocations(terrainMapSize, terrainNoiseScale, amplitude, populationMapSize, highDensityLimit, populationNoiseScale, populationAreaSize, seed, displayTerrain);
-        //st.Stop();
-        //Debug.Log("Finished updating!");
-        //Debug.Log("Update took " + st.ElapsedMilliseconds + " milliseconds to complete.");
-        //Debug.Log("Total time: " + st.Elapsed);
+        StartCoroutine(popPoints.updateLocsCoroutine(terrainMapSize, terrainNoiseScale, amplitude, populationMapSize, highDensityLimit, populationNoiseScale, populationAreaSize, seed, displayTerrain));
 
         return;
     }
@@ -217,26 +233,122 @@ public class GenerationController : MonoBehaviour {
 
     IEnumerator showHide()
     {
-        startPosition = new Vector3(controllerUI.anchoredPosition.x, controllerUI.anchoredPosition.y, 0f);
+        UIstartPosition = new Vector3(UIGroup.anchoredPosition.x, UIGroup.anchoredPosition.y, 0f);
 
-        currentTime = 0f;
+        UIcurrentTime = 0f;
 
-        if(!isHidden)
-            endPosition = new Vector3(controllerUI.anchoredPosition.x, controllerUI.anchoredPosition.y - 370f, 0f);
-        else
-            endPosition = new Vector3(controllerUI.anchoredPosition.x, controllerUI.anchoredPosition.y + 370f, 0f);
-
-
-        while (currentTime <= timeOfTravel)
+        if (!isHidden)
         {
-            currentTime += Time.deltaTime;
-            normalizedValue = currentTime / timeOfTravel;
+            UIendPosition = new Vector3(UIGroup.anchoredPosition.x + 400f, UIGroup.anchoredPosition.y, 0f);
+            showHideButton.GetComponentInChildren<Text>().text = "<";
+        }
+        else
+        {
+            UIendPosition = new Vector3(UIGroup.anchoredPosition.x - 400f, UIGroup.anchoredPosition.y, 0f);
+            showHideButton.GetComponentInChildren<Text>().text = ">";
+        }
 
-            controllerUI.anchoredPosition = Vector3.Lerp(startPosition, endPosition, normalizedValue);
+
+        while (UIcurrentTime <= UItimeOfTravel)
+        {
+            UIcurrentTime += Time.deltaTime;
+            UInormalizedValue = UIcurrentTime / UItimeOfTravel;
+
+            UIGroup.anchoredPosition = Vector3.Lerp(UIstartPosition, UIendPosition, UInormalizedValue);
             yield return null;
         }
 
         isHidden = !isHidden;
     }
 
+    IEnumerator errorShow(int errorCase)
+    {
+        string errorString = "";
+
+        switch (errorCase)
+        {
+            case 1:
+                errorString = "Invalid value entry. Please revise inputs.";
+                break;
+            case 2:
+                errorString = "Inputs same as previous inputs!";
+                break;
+            case 3:
+                errorString = "Terrain Map Size too low! Please keep it above 0.";
+                break;
+            case 4:
+                errorString = "Terrain Noise Scale too high! Please keep it below 50.";
+                break;
+            case 5:
+                errorString = "Terrain Noise Scale too low! Please keep it above 1.";
+                break;
+            case 6:
+                errorString = "Terrain Amplitude too low! Please keep it above 0.";
+                break;
+            case 7:
+                errorString = "Population Map Size too low! Please keep it above 0.";
+                break;
+            case 8:
+                errorString = "Population Noise Scale too high! Please keep it below 50.";
+                break;
+            case 9:
+                errorString = "Population Noise Scale too low! Please keep it above 0.";
+                break;
+            case 10:
+                errorString = "High Density Limit too low! Please keep it above 0.";
+                break;
+            case 11:
+                errorString = "High Density Limit too high! Please keep it below 1.";
+                break;
+            case 12:
+                errorString = "Population Area Limit too low! Please keep it above 0.";
+                break;
+        }
+
+        WarningText.GetComponent<Text>().text = errorString;
+
+        //Disable button while message is displayed
+        generateButton.interactable = false;
+
+
+        //Show loop
+
+        WarningStartPosition = new Vector3(WarningGroup.anchoredPosition.x, WarningGroup.anchoredPosition.y, 0f);
+        WarningEndPosition = new Vector3(WarningGroup.anchoredPosition.x, WarningGroup.anchoredPosition.y + 100f, 0f);
+
+        WarningCurrentTime = 0f;
+
+        while (WarningCurrentTime <= WarningTimeOfTravel)
+        {
+            WarningCurrentTime += Time.deltaTime;
+            WarningNormalizedValue = WarningCurrentTime / WarningTimeOfTravel;
+
+            WarningGroup.anchoredPosition = Vector3.Lerp(WarningStartPosition, WarningEndPosition, WarningNormalizedValue);
+            yield return null;
+        }
+        
+        //Wait for display
+        yield return new WaitForSeconds(5);
+
+        generateButton.interactable = true;
+
+        //Hide loop
+
+        WarningStartPosition = new Vector3(WarningGroup.anchoredPosition.x, WarningGroup.anchoredPosition.y, 0f);
+        WarningEndPosition = new Vector3(WarningGroup.anchoredPosition.x, WarningGroup.anchoredPosition.y - 100f, 0f);
+
+
+        WarningCurrentTime = 0f;
+
+        while (WarningCurrentTime <= WarningTimeOfTravel)
+        {
+            WarningCurrentTime += Time.deltaTime;
+            WarningNormalizedValue = WarningCurrentTime / WarningTimeOfTravel;
+
+            WarningGroup.anchoredPosition = Vector3.Lerp(WarningStartPosition, WarningEndPosition, WarningNormalizedValue);
+            yield return null;
+        }
+
+
+    }
 }
