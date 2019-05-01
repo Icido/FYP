@@ -4,7 +4,6 @@ using UnityEngine;
 using System.Diagnostics;
 using Debug = UnityEngine.Debug;
 
-
 public class PopulationPoints : MonoBehaviour {
 
     public GameObject populationHubObject;
@@ -23,61 +22,39 @@ public class PopulationPoints : MonoBehaviour {
 
     private float[,] terrainPoints;
 
-    private float maxAngle = 45f;
+    //The rate of rise would be 2 meters in 10 meters, 2 over 10. This would be the maximum incline along these roads.
+    private float riseOverRun = 0.2f;
 
-    private float riseOverRunAngle;
-
-    private AStarPathfinding aStar = new AStarPathfinding();
-
-    //private long previousElapsedMilliseconds = 0;
-
-    public void updateLocations(int terrainMapSize, float noiseScale, float amplitude, int populationMapSize, float highDensityLimit, float populationNoiseScale, int populationAreaSize, int seed, bool displayTerrain)
+    public IEnumerator updateLocsCoroutine(int terrainMapSize, float noiseScale, float amplitude, int populationMapSize, float highDensityLimit, float populationNoiseScale, int populationAreaSize, int seed, bool displayTerrain)
     {
-        //Stopwatch st = new Stopwatch();
-        //previousElapsedMilliseconds = 0;
-        //st.Start();
 
-        riseOverRunAngle = Mathf.Tan(maxAngle);
-
-        TerrainCalculator.UpdateTerrainMap(terrainMapSize, noiseScale, amplitude, riseOverRunAngle);
-        //Debug.Log("Finished Terrain generation");
-        //previousElapsedMilliseconds = st.ElapsedMilliseconds - previousElapsedMilliseconds;
-        //Debug.Log("UpdateTerrainMap took " + previousElapsedMilliseconds + " milliseconds to complete.");
+        TerrainCalculator.UpdateTerrainMap(terrainMapSize, noiseScale, amplitude, riseOverRun);
 
         terrainPoints = TerrainCalculator.getTerrainPoints();
 
         PopulationCalculator.UpdatePopulationMap(terrainPoints, populationMapSize, highDensityLimit, populationNoiseScale, populationAreaSize);
-        //Debug.Log("Finished Population generation");
-        //previousElapsedMilliseconds = st.ElapsedMilliseconds - previousElapsedMilliseconds;
-        //Debug.Log("UpdatePopulationMap took " + st.ElapsedMilliseconds + " milliseconds to complete.");
 
         hotspotGeneration(PopulationCalculator.getHighPopAreas());
-        //Debug.Log("Finished Hotspot generation");
-        //previousElapsedMilliseconds = st.ElapsedMilliseconds - previousElapsedMilliseconds;
-        //Debug.Log("HotspotGeneration took " + st.ElapsedMilliseconds + " milliseconds to complete.");
 
         if (displayTerrain)
         {
             terrainSpotGeneration(terrainPoints);
-            //Debug.Log("Finished TerrainPoint generation");
-            //previousElapsedMilliseconds = st.ElapsedMilliseconds - previousElapsedMilliseconds;
-            //Debug.Log("TerrainSpotGeneration took " + st.ElapsedMilliseconds + " milliseconds to complete.");
+        }
+        else if(terrainSpots.Count > 0)
+        {
+            foreach (GameObject terrainSpot in terrainSpots)
+            {
+                Destroy(terrainSpot);
+            }
 
+            terrainSpots.Clear();
         }
 
         NearestNeighbourFinder.roadConnections(populationHotSpots, seed);
-        //Debug.Log("Finished finding nearest neighbours");
-        //previousElapsedMilliseconds = st.ElapsedMilliseconds - previousElapsedMilliseconds;
-        //Debug.Log("RoadConnections took " + st.ElapsedMilliseconds + " milliseconds to complete.");
 
-        roadGeneration(populationHotSpots, terrainPoints);
-        //Debug.Log("Finished Road generation");
-        //previousElapsedMilliseconds = st.ElapsedMilliseconds - previousElapsedMilliseconds;
-        //Debug.Log("RoadGeneration took " + st.ElapsedMilliseconds + " milliseconds to complete.");
+        StartCoroutine(roadGeneration(populationHotSpots, terrainPoints));
 
-        //st.Stop();
-
-        return;
+        yield return null;
     }
 
     void terrainSpotGeneration(float[,] terrainPoints)
@@ -110,8 +87,6 @@ public class PopulationPoints : MonoBehaviour {
                 terrainSpots.Add(terSpot);
             }
         }
-
-        //terSpots.SetActive(false);
 
         return;
     }
@@ -150,7 +125,7 @@ public class PopulationPoints : MonoBehaviour {
         return;
     }
     
-    void roadGeneration(List<GameObject> locations, float[,] terrPoints)
+    IEnumerator roadGeneration(List<GameObject> locations, float[,] terrPoints)
     {
         foreach (GameObject loc in locations)
         {
@@ -167,15 +142,10 @@ public class PopulationPoints : MonoBehaviour {
 
         bool[,,] terrainChecker = TerrainCalculator.getTerrainChecker();
 
-        //Stopwatch st = new Stopwatch();
-        //st.Start();
         foreach (GameObject location in locations)
         {
-
             //Create a temporary list of keys to iterate over to prevent iteration errors while in the foreach loop
             List<GameObject> keys = new List<GameObject>(location.GetComponent<StoredNearestNeighbours>().Neighbours.Keys);
-
-            int roadNum = 0;
 
             foreach (GameObject point in keys)
             {
@@ -183,54 +153,55 @@ public class PopulationPoints : MonoBehaviour {
                     point.GetComponent<StoredNearestNeighbours>().Neighbours[location] == true)
                     continue;
 
-                List<Vector2Int> roadConnectionsList = new List<Vector2Int>();
-
-                roadConnectionsList.Clear();
-
-                //StartCoroutine(aStarConnections(point, location, terrPoints));
-
-                roadConnectionsList = aStar.roadConnections(point.transform.position, location.transform.position, terrPoints, terrainChecker, riseOverRunAngle);
-                roadConnectionsList.Insert(0, new Vector2Int((int)point.transform.position.x, (int)point.transform.position.z)); ;
-                //Debug.Log("Road from " + point.transform.position + " to " + location.transform.position + " has " + roadConnectionsList.Count + " connection points between");
-
-                for (int i = 0; i < roadConnectionsList.Count - 1; i++)
-                {
-                    Vector3 startPosition = new Vector3(roadConnectionsList[i].x, terrPoints[roadConnectionsList[i].x, roadConnectionsList[i].y], roadConnectionsList[i].y);
-
-                    Vector3 endPosition = new Vector3(roadConnectionsList[i + 1].x, terrPoints[roadConnectionsList[i + 1].x, roadConnectionsList[i + 1].y], roadConnectionsList[i + 1].y);
-
-                    Vector3 midPoint = new Vector3((startPosition.x + endPosition.x) / 2, (startPosition.y + endPosition.y) / 2, (startPosition.z + endPosition.z) / 2);
-
-                    float distanceBetween = Vector3.Distance(startPosition, endPosition);
-                    GameObject newRoad = Instantiate(roadObject, midPoint, Quaternion.identity, location.transform);
-                    newRoad.transform.LookAt(endPosition);
-                    newRoad.name = "Road " + (i + 1);
-                    newRoad.transform.localScale = new Vector3(newRoad.transform.localScale.x, newRoad.transform.localScale.y, distanceBetween);
-                }
-
-                roadNum++;
-
                 location.GetComponent<StoredNearestNeighbours>().Neighbours[point] = true;
                 locations.Find(o => o == point).GetComponent<StoredNearestNeighbours>().Neighbours[location] = true;
+
+                StartCoroutine(aStarConnections(point.transform.position, location, terrPoints, terrainChecker, riseOverRun));
+
+                yield return null;
             }
-
-            //previousElapsedMilliseconds = st.ElapsedMilliseconds - previousElapsedMilliseconds;
-            //Debug.Log(roadNum + " roads from point " + location.transform.position + " took " + st.ElapsedMilliseconds + " milliseconds to complete.");
-
         }
-
-        //st.Stop();
-
-        return;
     }
 
-    IEnumerator aStarConnections(GameObject point, GameObject location, float[,] terrPoints)
+    IEnumerator aStarConnections(Vector3 point, GameObject location, float[,] terrPoints, bool[,,] terrChecker, float maxAngle)
     {
 
-        yield return null;
+        //Stopwatch st = new Stopwatch();
+        //st.Start();
+        //st.Stop();
+        //Debug.Log("EuclideanHeuristic took:" + st.ElapsedMilliseconds + " milliseconds");
+
+        List<Vector3> roadConnectionsList = new List<Vector3>();
+        AStarPathfinding aStar = new AStarPathfinding();
+
+        Vector3 startPosition = new Vector3();
+        Vector3 endPosition = new Vector3();
+        Vector3 midPoint = new Vector3();
+        float distanceBetween;
+
+        roadConnectionsList.Clear();
+
+        yield return StartCoroutine(aStar.runCoroutine(point, location.transform.position, terrPoints, terrChecker, riseOverRun));
+
+        roadConnectionsList = aStar.newRoad;
+        roadConnectionsList.Insert(0, new Vector3(point.x, point.y, point.z));
+
+        for (int i = 0; i < roadConnectionsList.Count - 1; i++)
+        {
+            startPosition = roadConnectionsList[i];
+
+            endPosition = roadConnectionsList[i + 1];
+
+            midPoint = new Vector3((startPosition.x + endPosition.x) / 2, (startPosition.y + endPosition.y) / 2, (startPosition.z + endPosition.z) / 2);
+
+            distanceBetween = Vector3.Distance(startPosition, endPosition);
+            GameObject newRoad = Instantiate(roadObject, midPoint, Quaternion.identity, location.transform);
+            newRoad.transform.LookAt(endPosition);
+            newRoad.name = "Road " + (i + 1);
+            newRoad.transform.localScale = new Vector3(newRoad.transform.localScale.x, newRoad.transform.localScale.y, distanceBetween);
+
+            yield return null;
+        }
 
     }
-
-
-
 }
