@@ -18,17 +18,17 @@ public static class PopulationCalculator {
     {
         List<Vector3> tempPopMap = Noise.GenerateNoiseMapList(populationMapSize, noiseScale);
 
-        populationSizeToTerrainSize = terrainPoints.GetUpperBound(0) + 1;
+        populationSizeToTerrainSize = TerrainCalculator.getTerrainSize();
 
         populationSizeToTerrainSize /= populationMapSize;
 
         noiseMap = tempPopMap;
             
-        DrawPopulationMap(noiseMap, terrainPoints, highDensityLimit, populationAreaSize);
+        DrawPopulationMap(terrainPoints, noiseMap, highDensityLimit, populationAreaSize);
         
     }
 
-    public static void DrawPopulationMap(List<Vector3> noiseMap, float[,] terrainPoints, float highDensityLimit, int populationAreaSize)
+    public static void DrawPopulationMap(float[,] terrPoints, List<Vector3> noiseMap, float highDensityLimit, int populationAreaSize)
     {
         HighPopDensityLocations.Clear();
         HighPopDensityAreas.Clear();
@@ -83,7 +83,7 @@ public static class PopulationCalculator {
 
         for (int i = 0; i < HighPopDensityAreas.Count; i++)
         {
-            HighPopDensityAreas[i] = new Vector3(HighPopDensityAreas[i].x, terrainPoints[(int)HighPopDensityAreas[i].x, (int)HighPopDensityAreas[i].z], HighPopDensityAreas[i].z);
+            HighPopDensityAreas[i] = new Vector3(HighPopDensityAreas[i].x, terrPoints[(int)HighPopDensityAreas[i].x, (int)HighPopDensityAreas[i].z], HighPopDensityAreas[i].z);
         }
     }
 

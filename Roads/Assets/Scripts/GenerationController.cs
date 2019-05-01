@@ -28,6 +28,29 @@ public class GenerationController : MonoBehaviour {
     public Toggle renderTerrainToggle;
 
 
+
+
+
+
+    public Button showHideButton;
+
+    public RectTransform controllerUI;
+
+    private float timeOfTravel = 0.25f;
+
+    private float currentTime = 0f;
+
+    private float normalizedValue;
+
+    private Vector3 startPosition;
+
+    private Vector3 endPosition;
+
+    private bool isHidden = false;
+
+
+
+
     [SerializeField]
     private PopulationPoints popPoints;
 
@@ -57,6 +80,8 @@ public class GenerationController : MonoBehaviour {
     private void Start()
     {
         generateButton.onClick.AddListener(beginGeneration);
+
+        showHideButton.onClick.AddListener(showHideWrapper);
     }
 
     void beginGeneration()
@@ -184,4 +209,34 @@ public class GenerationController : MonoBehaviour {
 
         return;
     }
+
+    void showHideWrapper()
+    {
+        StartCoroutine(showHide());
+    }
+
+    IEnumerator showHide()
+    {
+        startPosition = new Vector3(controllerUI.anchoredPosition.x, controllerUI.anchoredPosition.y, 0f);
+
+        currentTime = 0f;
+
+        if(!isHidden)
+            endPosition = new Vector3(controllerUI.anchoredPosition.x, controllerUI.anchoredPosition.y - 370f, 0f);
+        else
+            endPosition = new Vector3(controllerUI.anchoredPosition.x, controllerUI.anchoredPosition.y + 370f, 0f);
+
+
+        while (currentTime <= timeOfTravel)
+        {
+            currentTime += Time.deltaTime;
+            normalizedValue = currentTime / timeOfTravel;
+
+            controllerUI.anchoredPosition = Vector3.Lerp(startPosition, endPosition, normalizedValue);
+            yield return null;
+        }
+
+        isHidden = !isHidden;
+    }
+
 }

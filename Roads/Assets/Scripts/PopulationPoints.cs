@@ -25,6 +25,10 @@ public class PopulationPoints : MonoBehaviour {
 
     private float[,] terrainPoints;
 
+    private float maxAngle = 45f;
+
+    private float riseOverRunAngle;
+
     private AStarPathfinding aStar = new AStarPathfinding();
 
     //private long previousElapsedMilliseconds = 0;
@@ -35,7 +39,9 @@ public class PopulationPoints : MonoBehaviour {
         //previousElapsedMilliseconds = 0;
         //st.Start();
 
-        TerrainCalculator.UpdateTerrainMap(terrainMapSize, noiseScale, amplitude);
+        riseOverRunAngle = Mathf.Tan(maxAngle);
+
+        TerrainCalculator.UpdateTerrainMap(terrainMapSize, noiseScale, amplitude, riseOverRunAngle);
         //Debug.Log("Finished Terrain generation");
         //previousElapsedMilliseconds = st.ElapsedMilliseconds - previousElapsedMilliseconds;
         //Debug.Log("UpdateTerrainMap took " + previousElapsedMilliseconds + " milliseconds to complete.");
@@ -76,6 +82,42 @@ public class PopulationPoints : MonoBehaviour {
         return;
     }
 
+    void terrainSpotGeneration(float[,] terrainPoints)
+    {
+
+        //if (GameObject.Find("Terrain Points") == null)
+        if (terSpots == null)
+        {
+            terSpots = new GameObject();
+            terSpots.name = "Terrain Points";
+            terSpots.transform.position = Vector3.zero;
+        }
+
+        if (terrainSpots.Count > 0)
+        {
+            foreach (GameObject terrainSpot in terrainSpots)
+            {
+                Destroy(terrainSpot);
+            }
+
+            terrainSpots.Clear();
+        }
+
+        for (int y = 0; y < terrainPoints.GetLength(1); y++)
+        {
+            for (int x = 0; x < terrainPoints.GetLength(0); x++)
+            {
+                GameObject terSpot = Instantiate(terrainObject, new Vector3(x, terrainPoints[x,y], y), Quaternion.identity, terSpots.transform);
+                terSpot.name = "Terrain spot " + (y * terrainPoints.GetUpperBound(0) + x);
+                terrainSpots.Add(terSpot);
+            }
+        }
+
+        //terSpots.SetActive(false);
+
+        return;
+    }
+
     void hotspotGeneration(List<Vector3> hotspots)
     {
 
@@ -109,43 +151,7 @@ public class PopulationPoints : MonoBehaviour {
 
         return;
     }
-
-    void terrainSpotGeneration(float[,] terrainPoints)
-    {
-
-        //if (GameObject.Find("Terrain Points") == null)
-        if (terSpots == null)
-        {
-            terSpots = new GameObject();
-            terSpots.name = "Terrain Points";
-            terSpots.transform.position = Vector3.zero;
-        }
-
-        if (terrainSpots.Count > 0)
-        {
-            foreach (GameObject terrainSpot in terrainSpots)
-            {
-                Destroy(terrainSpot);
-            }
-
-            terrainSpots.Clear();
-        }
-
-        for (int y = 0; y < terrainPoints.GetLength(1); y++)
-        {
-            for (int x = 0; x < terrainPoints.GetLength(0); x++)
-            {
-                GameObject terSpot = Instantiate(terrainObject, new Vector3(x, terrainPoints[x,y], y), Quaternion.identity, terSpots.transform);
-                terSpot.name = "Terrain spot " + (y * terrainPoints.GetLength(1) + x);
-                terrainSpots.Add(terSpot);
-            }
-        }
-
-        //terSpots.SetActive(false);
-
-        return;
-    }
-
+    
     void roadGeneration(List<GameObject> locations, float[,] terrPoints)
     {
         foreach (GameObject loc in locations)
@@ -160,6 +166,8 @@ public class PopulationPoints : MonoBehaviour {
                 }
             }
         }
+
+        bool[,,] terrainChecker = TerrainCalculator.getTerrainChecker();
 
         //Stopwatch st = new Stopwatch();
         //st.Start();
@@ -181,7 +189,7 @@ public class PopulationPoints : MonoBehaviour {
 
                 //StartCoroutine(aStarConnections(point, location, terrPoints));
 
-                roadConnectionsList = aStar.roadConnections(point.transform.position, location.transform.position, terrPoints);
+                roadConnectionsList = aStar.roadConnections(point.transform.position, location.transform.position, terrPoints, terrainChecker);
                 roadConnectionsList.Insert(0, new Vector2Int((int)point.transform.position.x, (int)point.transform.position.z)); ;
                 //Debug.Log("Road from " + point.transform.position + " to " + location.transform.position + " has " + roadConnectionsList.Count + " connection points between");
 

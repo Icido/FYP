@@ -6,22 +6,29 @@ public static class TerrainCalculator {
 
     private static float[,] terrainMap;
 
-    //private float maxTerrainValue = float.MinValue;
+    private static bool[,,] terrainChecker;
 
-    //private float minTerrainValue = float.MaxValue;
+    private static int terrainMapSize;
 
-    //private float averageTerrainValue = 0f;
+    private static int currentNeighbourX;
 
-    public static void UpdateTerrainMap(int mapSize, float noiseScale, float amplitude)
+    private static int currentNeighbourY;
+
+    private static float currentMaxAngle;
+
+    public static void UpdateTerrainMap(int mapSize, float noiseScale, float amplitude, float maxAngle)
     {
-        float[,] tempTerMap = Noise.GenerateNoiseMapArray(mapSize, noiseScale, amplitude);
+        terrainMapSize = mapSize;
 
+        currentMaxAngle = maxAngle;
+
+        float[,] tempTerMap = Noise.GenerateNoiseMapArray(mapSize, noiseScale, amplitude);
 
         if (tempTerMap != terrainMap)
         {
             terrainMap = tempTerMap;
 
-            //GatherTerrainData(terrainMap);
+            terrainConversion();
         }
     }
 
@@ -30,42 +37,68 @@ public static class TerrainCalculator {
         return terrainMap;
     }
 
-    //public void GatherTerrainData(float[,] noiseMap)
-    //{
-    //    int mapSize = noiseMap.GetUpperBound(0) + 1;
+    public static int getTerrainSize()
+    {
+        return terrainMapSize;
+    }
 
-    //    for (int y = 0; y < mapSize; y++)
-    //    {
-    //        for (int x = 0; x < mapSize; x++)
-    //        {
-    //            if (maxTerrainValue < noiseMap[x, y])
-    //                maxTerrainValue = noiseMap[x, y];
+    private static void terrainConversion()
+    {
+        terrainChecker = new bool[terrainMapSize, terrainMapSize, 8];
 
-    //            if (minTerrainValue > noiseMap[x, y])
-    //                minTerrainValue = noiseMap[x, y];
+        for (int y = 0; y < terrainMapSize; y++)
+        {
+            for (int x = 0; x < terrainMapSize; x++)
+            {
+                neighbourIteration(x, y);
+            }
+        }
 
-    //            averageTerrainValue += noiseMap[x, y];
-    //        }
-    //    }
+        return;
+    }
 
-    //    averageTerrainValue /= (mapSize * mapSize);
+    private static void neighbourIteration(int x, int y)
+    {
+        int neighbourNumber = 0;
 
-    //    return;
-    //}
+        for (int neighbourY = -1; neighbourY < 2; neighbourY++)
+        {
+            for (int neighbourX = -1; neighbourX < 2; neighbourX++)
+            {
+                if (neighbourX == 0 && neighbourY == 0)
+                    continue;
 
-    //public float getMaxTerrainValue()
-    //{
-    //    return maxTerrainValue;
-    //}
+                currentNeighbourX = x + neighbourX;
+                currentNeighbourY = y + neighbourY;
 
-    //public float getMinTerrainValue()
-    //{
-    //    return minTerrainValue;
-    //}
+                terrainChecker[x, y, neighbourNumber] = checkPoint(x, y, currentNeighbourX, currentNeighbourY);
 
-    //public float getAverageTerrainValue()
-    //{
-    //    return averageTerrainValue;
-    //}
+                neighbourNumber++;
+                
+            }
+        }
+    }
+
+    private static bool checkPoint(int x, int y, int neighbourX, int neighbourY)
+    {
+        if (neighbourX == terrainMapSize || neighbourX == -1 ||
+            neighbourY == terrainMapSize || neighbourY == -1)
+            return false;
+
+        float dYHeight = Mathf.Abs(terrainMap[neighbourX, neighbourY] - terrainMap[x, y]);
+        float dXLength = Vector2.Distance(new Vector2(neighbourX, neighbourY), new Vector2(x, y));
+        float angleBetween = dYHeight / dXLength;
+
+        if (angleBetween >= currentMaxAngle)
+            return false;
+
+
+        return true;
+    }
+
+    public static bool[,,] getTerrainChecker()
+    {
+        return terrainChecker;
+    }
 
 }
