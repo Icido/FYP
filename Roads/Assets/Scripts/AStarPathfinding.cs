@@ -19,7 +19,8 @@ public class AStarPathfinding {
 
     private float diagonalCost = Mathf.Sqrt(2);
     private float normalCost = 1f;
-    //private float stepCost = 1f;
+
+    private float maxAngle;
 
     //What causes the hang-time is that the A* algorithm cannot find a clear path from start to finish. Either changing the max angle or chaning the terrain amplitude solves this.
     //There must be a better solution for the A* algorithm to find a clearer path.
@@ -27,9 +28,11 @@ public class AStarPathfinding {
     //Paper for better and more efficient deadlock failsafes (if deadlock becomes a problem again)
     //https://www.aaai.org/Papers/ICAPS/2008/ICAPS08-047.pdf
 
-    public List<Vector2Int> roadConnections(Vector3 startPoint, Vector3 finishPoint, float[,] terrainPoints, bool[,,] terrainChecker)
+    public List<Vector2Int> roadConnections(Vector3 startPoint, Vector3 finishPoint, float[,] terrainPoints, bool[,,] terrainChecker, float riseOverRun)
     {
         neighbours.Clear();
+
+        maxAngle = 1 / riseOverRun;
 
         Point start = new Point(startPoint);
         Point finish = new Point(finishPoint);
@@ -84,9 +87,9 @@ public class AStarPathfinding {
                 //projectedG = getGScore(current) + stepCost + (getAngleBetween(current, neighbour) / 45f);
 
                 if (neighbour.isDiagonal == true)
-                    projectedG = getGScore(current) + diagonalCost;// + getAngledCost(current, neighbour);
+                    projectedG = getGScore(current) + diagonalCost + getAngledCost(current, neighbour);
                 else
-                    projectedG = getGScore(current) + normalCost;// + getAngledCost(current, neighbour);
+                    projectedG = getGScore(current) + normalCost + getAngledCost(current, neighbour);
 
                 if (!openSet.ContainsKey(neighbour))
                     openSet[neighbour] = true;
@@ -210,18 +213,19 @@ public class AStarPathfinding {
         return;
     }
 
-
     private float getAngledCost(Point current, Point neighbour)
     {
         float dYHeight = Mathf.Abs(neighbour.height - current.height);
         float dXLength = Vector2.Distance(new Vector2(neighbour.X, neighbour.Y), new Vector2(current.X, current.Y));
-        float angleBetween = (dYHeight / dXLength) * Mathf.Rad2Deg;
+        float angleBetween = (dYHeight / dXLength) * maxAngle;
 
         return angleBetween;
     }
 
+    #endregion
+
 }
-#endregion
+
 
 public struct Point
 {

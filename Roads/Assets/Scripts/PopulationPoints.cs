@@ -17,8 +17,6 @@ public class PopulationPoints : MonoBehaviour {
 
     private List<GameObject> terrainSpots = new List<GameObject>();
 
-    private List<Vector2Int> roadConnectionsList = new List<Vector2Int>();
-
     private GameObject popSpots;
 
     private GameObject terSpots;
@@ -181,15 +179,17 @@ public class PopulationPoints : MonoBehaviour {
 
             foreach (GameObject point in keys)
             {
-                roadConnectionsList.Clear();
-
-                if (location.GetComponent<StoredNearestNeighbours>().Neighbours[point] == true || 
+                if (location.GetComponent<StoredNearestNeighbours>().Neighbours[point] == true ||
                     point.GetComponent<StoredNearestNeighbours>().Neighbours[location] == true)
                     continue;
 
+                List<Vector2Int> roadConnectionsList = new List<Vector2Int>();
+
+                roadConnectionsList.Clear();
+
                 //StartCoroutine(aStarConnections(point, location, terrPoints));
 
-                roadConnectionsList = aStar.roadConnections(point.transform.position, location.transform.position, terrPoints, terrainChecker);
+                roadConnectionsList = aStar.roadConnections(point.transform.position, location.transform.position, terrPoints, terrainChecker, riseOverRunAngle);
                 roadConnectionsList.Insert(0, new Vector2Int((int)point.transform.position.x, (int)point.transform.position.z)); ;
                 //Debug.Log("Road from " + point.transform.position + " to " + location.transform.position + " has " + roadConnectionsList.Count + " connection points between");
 
