@@ -4,76 +4,66 @@ using UnityEngine;
 
 public static class PopulationCalculator {
 
-    private static List<Vector3> noiseMap;
+    private static List<Vector3> givenHighDensityPopulationLocations;
 
     private static float populationSizeToTerrainSize;
 
-    private static List<Vector2> tempLocVec = new List<Vector2>();
-
-    private static List<Vector2> HighPopDensityLocations = new List<Vector2>();
+    private static List<Vector3> tempLocVec = new List<Vector3>();
 
     private static List<Vector3> HighPopDensityAreas = new List<Vector3>();
 
+    //This generates points of high density population through Perlin Noise, then groups these points if they are close enough given the popAreaSize
     public static void UpdatePopulationMap(float[,] terrainPoints, int populationMapSize, float highDensityLimit, float noiseScale, int populationAreaSize)
     {
-        List<Vector3> tempPopMap = Noise.GenerateNoiseMapList(populationMapSize, noiseScale);
-
         populationSizeToTerrainSize = TerrainCalculator.getTerrainSize();
 
         populationSizeToTerrainSize /= populationMapSize;
 
-        noiseMap = tempPopMap;
+        givenHighDensityPopulationLocations = Noise.GenerateNoiseMapList(populationMapSize, noiseScale, highDensityLimit);
             
-        DrawPopulationMap(terrainPoints, noiseMap, highDensityLimit, populationAreaSize);
+        DrawPopulationMap(terrainPoints, populationAreaSize);
         
     }
 
-    public static void DrawPopulationMap(float[,] terrPoints, List<Vector3> noiseMap, float highDensityLimit, int populationAreaSize)
+    public static void DrawPopulationMap(float[,] terrPoints, int populationAreaSize)
     {
-        HighPopDensityLocations.Clear();
         HighPopDensityAreas.Clear();
 
-        for(int i = 0; i < noiseMap.Count; i++)
-        {
-            if(noiseMap[i].y > highDensityLimit)
-            {
-                HighPopDensityLocations.Add(new Vector2(noiseMap[i].x, noiseMap[i].z));
-            }
-        }
-
-        for (int i = 0; i < HighPopDensityLocations.Count; i++)
+        for (int i = 0; i < givenHighDensityPopulationLocations.Count; i++)
         {
             tempLocVec.Clear();
-            tempLocVec.Add(HighPopDensityLocations[i]);
+            tempLocVec.Add(givenHighDensityPopulationLocations[i]);
 
-            for (int j = 0; j < HighPopDensityLocations.Count; j++)
+            for (int j = 0; j < givenHighDensityPopulationLocations.Count; j++)
             {
                 if (i == j)
                 {
                     continue;
                 }
 
-                if((HighPopDensityLocations[i].x + populationAreaSize > HighPopDensityLocations[j].x) && (HighPopDensityLocations[i].x - populationAreaSize < HighPopDensityLocations[j].x) &&
-                    (HighPopDensityLocations[i].y + populationAreaSize > HighPopDensityLocations[j].y) && (HighPopDensityLocations[i].y - populationAreaSize < HighPopDensityLocations[j].y))
+                if((givenHighDensityPopulationLocations[i].x + populationAreaSize > givenHighDensityPopulationLocations[j].x) && 
+                    (givenHighDensityPopulationLocations[i].x - populationAreaSize < givenHighDensityPopulationLocations[j].x) &&
+                    (givenHighDensityPopulationLocations[i].z + populationAreaSize > givenHighDensityPopulationLocations[j].z) && 
+                    (givenHighDensityPopulationLocations[i].z - populationAreaSize < givenHighDensityPopulationLocations[j].z))
                 {
-                    tempLocVec.Add(HighPopDensityLocations[j]);
+                    tempLocVec.Add(givenHighDensityPopulationLocations[j]);
                 }
             }
 
             int tempCount = tempLocVec.Count;
             float tempX = 0f;
-            float tempY = 0f;
+            float tempZ = 0f;
 
             for (int v = 0; v < tempCount; v++)
             {
                 tempX += tempLocVec[v].x;
-                tempY += tempLocVec[v].y;
+                tempZ += tempLocVec[v].z;
             }
 
             float newTempX = tempX / tempCount;
-            float newTempY = tempY / tempCount;
+            float newTempZ = tempZ / tempCount;
 
-            Vector3 tempVec3 = new Vector3(Mathf.RoundToInt(newTempX * populationSizeToTerrainSize), 0, Mathf.RoundToInt(newTempY * populationSizeToTerrainSize));
+            Vector3 tempVec3 = new Vector3(Mathf.RoundToInt(newTempX * populationSizeToTerrainSize), 0, Mathf.RoundToInt(newTempZ * populationSizeToTerrainSize));
 
             if(!HighPopDensityAreas.Contains(tempVec3))
             {

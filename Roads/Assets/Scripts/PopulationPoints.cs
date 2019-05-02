@@ -1,25 +1,25 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Diagnostics;
-using Debug = UnityEngine.Debug;
 
 public class PopulationPoints : MonoBehaviour {
 
+    //Object prefabs for instancing purposes
     public GameObject populationHubObject;
-
     public GameObject terrainObject;
-
     public GameObject roadObject;
 
+    //List of displayable population spots
     private List<GameObject> populationHotSpots = new List<GameObject>();
 
+    //List of displayable terrain spots (TODO: Replace Terrain Spots with a mesh)
     private List<GameObject> terrainSpots = new List<GameObject>();
 
+    //Temp game object for instancing purposes
     private GameObject popSpots;
-
     private GameObject terSpots;
 
+    //2D Array of the terrain, each point returns a float, its height
     private float[,] terrainPoints;
 
     //The rate of rise would be 2 meters in 10 meters, 2 over 10. This would be the maximum incline along these roads.
@@ -45,7 +45,7 @@ public class PopulationPoints : MonoBehaviour {
             foreach (GameObject terrainSpot in terrainSpots)
             {
                 Destroy(terrainSpot);
-            }
+           }
 
             terrainSpots.Clear();
         }
@@ -57,6 +57,9 @@ public class PopulationPoints : MonoBehaviour {
         yield return null;
     }
 
+    #region Object Instancing
+
+    //TODO: Replace Terrain Spots with a mesh
     void terrainSpotGeneration(float[,] terrainPoints)
     {
 
@@ -124,7 +127,11 @@ public class PopulationPoints : MonoBehaviour {
 
         return;
     }
-    
+
+    #endregion
+
+    #region A* Pathfinding
+
     IEnumerator roadGeneration(List<GameObject> locations, float[,] terrPoints)
     {
         foreach (GameObject loc in locations)
@@ -166,11 +173,6 @@ public class PopulationPoints : MonoBehaviour {
     IEnumerator aStarConnections(Vector3 point, GameObject location, float[,] terrPoints, bool[,,] terrChecker, float maxAngle)
     {
 
-        //Stopwatch st = new Stopwatch();
-        //st.Start();
-        //st.Stop();
-        //Debug.Log("EuclideanHeuristic took:" + st.ElapsedMilliseconds + " milliseconds");
-
         List<Vector3> roadConnectionsList = new List<Vector3>();
         AStarPathfinding aStar = new AStarPathfinding();
 
@@ -181,7 +183,8 @@ public class PopulationPoints : MonoBehaviour {
 
         roadConnectionsList.Clear();
 
-        yield return StartCoroutine(aStar.runCoroutine(point, location.transform.position, terrPoints, terrChecker, riseOverRun));
+        //Runs the a* pathfinding coroutine, but waits until it has found a path(or has not found a path)
+        yield return StartCoroutine(aStar.runPathfinding(point, location.transform.position, terrPoints, terrChecker, riseOverRun));
 
         roadConnectionsList = aStar.newRoad;
         roadConnectionsList.Insert(0, new Vector3(point.x, point.y, point.z));
@@ -203,5 +206,13 @@ public class PopulationPoints : MonoBehaviour {
             yield return null;
         }
 
+    }
+
+    #endregion
+
+    //Function to kill all Coroutines currently running, called by the "close" button function
+    public void appKill()
+    {
+        StopAllCoroutines();
     }
 }

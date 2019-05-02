@@ -4,7 +4,11 @@ using UnityEngine;
 
 public static class Noise {
 
-    public static List<Vector3> GenerateNoiseMapList(int mapSize, float scale)
+    //This noise class has two different ways of generating its data, as one is used to output a 2D float array and the other is as a List<Vector3>
+    //The float[,] is for the terrain, as such utilises the amplitude to vary the height to a greater degree
+    //The List<Vector3> is for the high density population locations, any points of Perlin Noise that is higher than the limit gets the location added
+
+    public static List<Vector3> GenerateNoiseMapList(int mapSize, float scale, float highDensityLimit)
     {
         List<Vector3> noiseMap = new List<Vector3>();
 
@@ -21,7 +25,10 @@ public static class Noise {
                 float sampleY = y / scale;
 
                 float perlinValue = Mathf.PerlinNoise(sampleX, sampleY);
-                noiseMap.Add(new Vector3(x, perlinValue, y));
+
+                if(perlinValue > highDensityLimit)
+                    noiseMap.Add(new Vector3(x, 0, y));
+
             }
         }
 

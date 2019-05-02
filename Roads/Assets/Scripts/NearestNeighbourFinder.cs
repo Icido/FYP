@@ -6,9 +6,10 @@ public static class NearestNeighbourFinder {
 
     public static void roadConnections(List<GameObject> locations, int seed)
     {
-
+        //Sets the seed to the given seed, useful for repeating the same neighbours and values if necessary
         Random.InitState(seed);
 
+        //Resets each stored nearest connections, clears them and gives them a new maximum number of connections
         foreach(GameObject location in locations)
         {
             location.GetComponent<StoredNearestNeighbours>().currentNumberOfConnections = 0;
@@ -18,13 +19,16 @@ public static class NearestNeighbourFinder {
             location.GetComponent<StoredNearestNeighbours>().Neighbours.Clear();
         }
 
+        //This checks each location against all other locations to search for the nearest neighbours (up to their maximum amount)
         foreach (GameObject location in locations)
         {
+            //Firstly checks how many available connections remain, as some could have already connected to this particular location prior to checking and cannot find any more new connections
             int numRemainingConnections = location.GetComponent<StoredNearestNeighbours>().maxNumberOfConnections - location.GetComponent<StoredNearestNeighbours>().currentNumberOfConnections;
 
             if (numRemainingConnections <= 0)
                 continue;
 
+            //Temporary storage of the saved location distances and indexes
             float savedLoc1dist = new Vector3(-float.MaxValue, -float.MaxValue, -float.MaxValue).sqrMagnitude;
             float savedLoc2dist = new Vector3(-float.MaxValue, -float.MaxValue, -float.MaxValue).sqrMagnitude;
             float savedLoc3dist = new Vector3(-float.MaxValue, -float.MaxValue, -float.MaxValue).sqrMagnitude;
@@ -92,7 +96,7 @@ public static class NearestNeighbourFinder {
 
             }
 
-            //Catches if there are no available connections
+            //Catches if there are no available connections, if so then move on
             if (savedLoc1index == -1)
             {
                 //Debug.Log("No available connections for " + location.name);
@@ -160,8 +164,10 @@ public static class NearestNeighbourFinder {
         }
     }
 
+    //Searches over the 4 stored distances and returns the highest distance index
     static int findHighestDist(float dist1, float dist2, float dist3, float dist4)
     {
+        //Simply gets the maximum distance of dist 1, dist 2, dist 3 and dist 4
         float maxDist = Mathf.Max(dist1, Mathf.Max(dist2, Mathf.Max(dist3, dist4)));
 
         if (maxDist == dist1)
@@ -179,31 +185,5 @@ public static class NearestNeighbourFinder {
         //Default
         return 1;
     }
-
-
-
-    //for each point in highdensityareas (HDA):
-        //numConnections = random number between 1 and 4 (weighted toward 2/3)
-        //for each HDA (except self):
-            //find numConnections nearest neighbours via distance between, store locally
-        //check all numconnections if they are already connected (each instanciated HDA stores list of GO of connected HDAs) and remove (as already connected)
-        //instanciate road object connected between each, as a child of the initial connector
-
-
-
-    //for each point in highdensityareas (HDA):
-        //numConnections = random number between 1 and 4 (weighted toward 2/3)
-
-    //for each point in highdensityareas (HDA):
-        //for each HDA (except self):
-            //check if numconnections of the chosen HDA has been filled
-            //find numConnections nearest neighbours via distance between, store locally
-
-        
-    
-        //check all numconnections if they are already connected (each instanciated HDA stores list of GO of connected HDAs) and remove (as already connected)
-        //instanciate road object connected between each, as a child of the initial connector
-
-
 
 }

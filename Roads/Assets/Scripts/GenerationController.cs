@@ -1,95 +1,68 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Diagnostics;
-using Debug = UnityEngine.Debug;
 
 [RequireComponent(typeof(PopulationPoints))]
 public class GenerationController : MonoBehaviour {
 
-    public Button generateButton;
-
+    //Input fields
     public InputField terrMapSizeInputField;
-
     public InputField terrNoiseScaleInputField;
-
     public InputField terrAmplitudeInputField;
-
     public InputField popMapSizeInputField;
-
     public InputField popNoiseScaleInputField;
-
     public InputField highDensityLimitInputField;
-
     public InputField popAreaLimitInputField;
-
     public InputField seedInputField;
-
     public Toggle renderTerrainToggle;
 
 
-
-
-
-
+    //Buttons
+    public Button generateButton;
     public Button showHideButton;
+    public Button closeButton;
 
+
+    //UI displays
     public RectTransform UIGroup;
 
+    public GameObject WarningGroup;
+    private RectTransform WarningRect;
+    private Text WarningText;
+
+
+    //UI Lerp values
     private float UItimeOfTravel = 0.25f;
-
     private float UIcurrentTime = 0f;
-
     private float UInormalizedValue;
-
     private Vector3 UIstartPosition;
-
     private Vector3 UIendPosition;
-
     private bool isHidden = false;
 
 
-    public RectTransform WarningGroup;
-
-    public Text WarningText;
-
+    //Warning Lerp values
     private float WarningTimeOfTravel = 0.25f;
-
     private float WarningCurrentTime = 0f;
-
     private float WarningNormalizedValue;
-
     private Vector3 WarningStartPosition;
-
     private Vector3 WarningEndPosition;
 
 
-
+    //Reference to the script on this gameObject
     private PopulationPoints popPoints;
 
-    //Ensure terrainMapSize is never 0 or below
+
+    //Generation values (stored for repetition prevention purposes)
     private int terrainMapSize;
-
-    [Range(1f, 50f)]
     private float terrainNoiseScale;
-
     private float amplitude;
-
-    //Ensure populationMapSize is never 0 or below
     private int populationMapSize;
-
-    [Range(0f, 1f)]
     private float highDensityLimit;
-
-    [Range(1f, 50f)]
     private float populationNoiseScale;
-
     private int populationAreaSize;
-
     private int seed;
-
     private bool displayTerrain;
+
 
     private void Start()
     {
@@ -97,8 +70,8 @@ public class GenerationController : MonoBehaviour {
 
         generateButton.onClick.AddListener(beginGeneration);
         showHideButton.onClick.AddListener(showHideWrapper);
+        closeButton.onClick.AddListener(closeProgram);
     }
-
 
     void beginGeneration()
     {
@@ -265,6 +238,11 @@ public class GenerationController : MonoBehaviour {
     {
         string errorString = "";
 
+        GameObject newWarning = Instantiate(WarningGroup, FindObjectOfType<Canvas>().transform);
+        newWarning.SetActive(true);
+        WarningRect = newWarning.GetComponent<RectTransform>();
+        WarningText = newWarning.GetComponentInChildren<Text>();
+
         switch (errorCase)
         {
             case 1:
@@ -313,8 +291,8 @@ public class GenerationController : MonoBehaviour {
 
         //Show loop
 
-        WarningStartPosition = new Vector3(WarningGroup.anchoredPosition.x, WarningGroup.anchoredPosition.y, 0f);
-        WarningEndPosition = new Vector3(WarningGroup.anchoredPosition.x, WarningGroup.anchoredPosition.y + 100f, 0f);
+        WarningStartPosition = new Vector3(WarningRect.anchoredPosition.x, WarningRect.anchoredPosition.y, 0f);
+        WarningEndPosition = new Vector3(WarningRect.anchoredPosition.x, WarningRect.anchoredPosition.y + 100f, 0f);
 
         WarningCurrentTime = 0f;
 
@@ -323,19 +301,21 @@ public class GenerationController : MonoBehaviour {
             WarningCurrentTime += Time.deltaTime;
             WarningNormalizedValue = WarningCurrentTime / WarningTimeOfTravel;
 
-            WarningGroup.anchoredPosition = Vector3.Lerp(WarningStartPosition, WarningEndPosition, WarningNormalizedValue);
+            WarningRect.anchoredPosition = Vector3.Lerp(WarningStartPosition, WarningEndPosition, WarningNormalizedValue);
             yield return null;
         }
         
         //Wait for display
         yield return new WaitForSeconds(5);
 
+        //Reenable button after displaying errormes
         generateButton.interactable = true;
+
 
         //Hide loop
 
-        WarningStartPosition = new Vector3(WarningGroup.anchoredPosition.x, WarningGroup.anchoredPosition.y, 0f);
-        WarningEndPosition = new Vector3(WarningGroup.anchoredPosition.x, WarningGroup.anchoredPosition.y - 100f, 0f);
+        WarningStartPosition = new Vector3(WarningRect.anchoredPosition.x, WarningRect.anchoredPosition.y, 0f);
+        WarningEndPosition = new Vector3(WarningRect.anchoredPosition.x, WarningRect.anchoredPosition.y - 100f, 0f);
 
 
         WarningCurrentTime = 0f;
@@ -345,10 +325,20 @@ public class GenerationController : MonoBehaviour {
             WarningCurrentTime += Time.deltaTime;
             WarningNormalizedValue = WarningCurrentTime / WarningTimeOfTravel;
 
-            WarningGroup.anchoredPosition = Vector3.Lerp(WarningStartPosition, WarningEndPosition, WarningNormalizedValue);
+            WarningRect.anchoredPosition = Vector3.Lerp(WarningStartPosition, WarningEndPosition, WarningNormalizedValue);
             yield return null;
         }
 
+        Destroy(newWarning);
 
     }
+
+    //Program exit routine
+    void closeProgram()
+    {
+        popPoints.appKill();
+        StopAllCoroutines();
+        Application.Quit();
+    }
+
 }
